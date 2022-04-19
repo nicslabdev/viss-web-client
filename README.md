@@ -6,4 +6,6 @@ Future config API for AGT and AT (not developed) will be supported.
 ## Prerequisites and building
 GO version 1.17 is required, since some modules are written in go, then compiled to js using <a href="https://github.com/gopherjs/gopherjs">GopherJS</a>.
 Since module compilation is required, a script that automatically compiles all modules is given.
-TLS communication between the web app and VISS servers should be used, although it is not fully supported. It will be supported and implemented in future versions. 
+TLS communication between the web app and VISS servers should be used, although it is not fully supported. It will be supported and implemented in future versions.
+
+A server is required to run the web app. A basic file server is provided. It can be run by typing "go run server.go". After doing that, the web app will be avaliable in http://localhost:8080
