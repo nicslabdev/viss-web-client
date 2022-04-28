@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+        <title>VISS MANAGER - ATs</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="icon" href="images/favicon.ico">
+        <link rel="stylesheet" href="styles.css">
+		<script src="wasm_exec.js"></script>
+		<script> //type="module"
+			//import axios from 'axios': USED TO FETCH WHEN NOT USING WEB SERVER
+			const go = new Go();
+			//WebAssembly.instantiateStreaming(axios.get("scripts/go/lib.wasm"), go.importObject).then((result) => {
+			WebAssembly.instantiateStreaming(fetch("scripts/go/lib.wasm"), go.importObject).then((result) => {
+				go.run(result.instance);
+			});
+		</script>
+        <script src = "scripts/js/encoding.js"></script>
+	</head>
+	<body>
+        <a href="index.html">HOME</a><br>
+		<h2>Access Grant Token Client</h2><br>
+
+        <div id = gt_opts>
+            <h3>Grant Token Request</h3>
+            <label for="vin"><b>Vehicle Number</b></label>
+            <input id="vin" type="text" placeholder="GEO001"/>
+            <br><b>User Role</b>
+            <select id = "user_role" name = "user_role">
+                <option value = "Dealer">Dealer</option>
+                <option value = "OEM">OEM</option>
+                <option value = "Independent">Independent</option>
+                <option value = "Owner">Owner</option>
+                <option value = "Driver">Driver</option>
+                <option value = "Passenger">Passenger</option>
+            </select>
+            <br><b>Application Role</b>
+            <select id="app_role" name = "app_role">
+                <option value = "OEM">OEM</option>
+                <option value = "Third party">Third Party</option>
+            </select>
+            <br><b>Device Role</b>
+            <select id="dev_role" name = "dev_role">
+                <option value = "Vehicle">Vehicle</option>
+                <option value = "Nomadic">Nomadic</option>
+                <option value = "Cloud">Cloud</option>
+            </select>
+            <br><label for="Proof"><b>Proof:</b></label>
+            <input id="proof" type="text" value = "ABC" placeholder="ABC (not yet implemented)"/>
+            <br><b>Signature Type</b>
+            <select id = "sign_type" name = "sign_type">
+                <option value = "None">None</option>
+                <option value = "RS256">RS256</option>
+                <option value = "EC256">EC256</option>
+            </select>    
+        </div>
+
+        <div id = pop_opts style="display:none">
+            <h4>POP Parameters</h4>
+            <label for="pop_jti"><b>JTI: </b></label>
+            <input id = "pop_jti" type = "text" value = "auto" placeholder = "default: auto">
+            <br><label for="pop_aud"><b>AUD: </b></label>
+            <input id = "pop_aud" type = "text" value = "vissv2/agts" placeholder = "default: vissv2/agts">
+            <br><label for = "pop_iat"><b>IAT: </b>Default: Auto, Custom: +1, -1 or fixed value</label>
+            <input id = "pop_iat" type = "text" value = "auto" placeholder = "auto, +1, -1, 123">
+            <br><label for = "jwk_thumb"><b>Public key: </b></label>
+            <output id = "jwk_thumb" type = "text"></output>
+        </div>
+
+        <br><button onclick="sendAgtReq()"> --- SEND --- </button>
+        <button onclick="logshow()">toggle log</button>
+ 
+        <p id = "agReq" style="display:none"></p>
+        <p id = "agPop" style="display:none"></p>
+        <p id = "agResp" style="display:none"></p>   
+        
+        <p id = "logs"  style = display:none>LOGS<br></p>
+        
+        <!-- Script for style changes and logs-->
+        <script>
+            document.getElementById("sign_type").addEventListener("change", showPopOpts)
+
+            function showPopOpts() {
+                if (document.getElementById("sign_type").value == "" || document.getElementById("sign_type").value == "None"){
+                    document.getElementById("pop_opts").style.display = "none"
+                } else{
+                    document.getElementById("pop_opts").style.display = "block"
+                }
+            }
+
+            function log(data) {
+                document.getElementById("logs").innerHTML += data + "<br>"
+                return document.getElementById("logs").value
+            }
+            function logreset() {
+                document.getElementById("logs").value = "LOGS <br>"
+            }
+            function logshow() {
+                logstyle = document.getElementById("logs").style
+                if (logstyle.display == "block"){
+                    logstyle.display = "none"
+                } else {
+                    logstyle.display = "block"
+                }
+            }
+        </script>
+
+        <!-- Request maker-->
+        <script>
+            // AGT Requester
+            var agtURL = 'http://agt_url:61057/agts';
+            //var agtURL = 'http://127.0.0.1:7500/agts';
+            var agReq = document.getElementById("agReq");
+            var agPop = document.getElementById("agPop");
+            var agResp = document.getElementById("agResp");
+            var key_thumb;
+
+            function genAgtReq() {
+                let req;
+                req = jsonRecursiveEncoding("vin", document.getElementById("vin").value, "");
+                req = jsonRecursiveEncoding("context",document.getElementById("user_role").value + "+"
+                + document.getElementById("app_role").value + "+" + document.getElementById("dev_role").value, req);
+                req = jsonRecursiveEncoding("proof", document.getElementById("proof").value, req);
+                return req;
+            }
+
+            try {
+                function sendAgtReq(){
+                    let xhttpreq = new XMLHttpRequest();
+                    xhttpreq.onreadystatechange = function(){
+                        if(this.readyState == 4){
+                            if (this.status != 200){
+                                agResp.textContent = "Error: status:" + this.status + ", data: " + this.statusText;
+                            } else{
+                                agResp.textContent = "Response: " + this.responseText;
+                            }
+                            agResp.style.display = "block";
+                        }
+                    }
+
+                    xhttpreq.open("POST", agtURL, true);
+                    let req = genAgtReq();
+                    
+                    if (((document.getElementById("sign_type").value == "RS256")&&(localStorage.rsaKey != null )) || 
+                    ((document.getElementById("sign_type").value == "ES256")&&(localStorage.ecdsaKey != null ))) {
+                        let pop = generatePop()
+                        if (pop != ""){
+                            xhttpreq.setRequestHeader("PoP", pop);
+                            req = jsonRecursiveEncoding("key", document.getElementById("jwk_thumb").textContent, req);
+                        } else {
+                            return 
+                        }
+                    }
+                    agReq.textContent = req;
+                    agReq.style.display = "block";
+                    xhttpreq.send(req);
+                }
+            } catch(err){
+                agResp.textContent = "Error: " + err.message;
+                agResp.style.display = "block";
+            }
+        </script>
+
+        <p><button onclick="clickCounter()" type="button">Click me!</button></p>
+        <div id="result"></div>
+        <p>Click the button to see the counter increase.</p>
+        <p>Close the browser tab (or window), and try again, and the counter is reset.</p>
+
+        <script>
+        // Example LOCAL STORAGE
+        function clickCounter() {
+        if (typeof(Storage) !== "undefined") {
+            if (sessionStorage.clickcount) {
+            sessionStorage.clickcount = Number(sessionStorage.clickcount)+1;
+            } else {
+            sessionStorage.clickcount = 1;
+            }
+            document.getElementById("result").innerHTML = "You have clicked the button " + sessionStorage.clickcount + " time(s) in this session.";
+        } else {
+            document.getElementById("result").innerHTML = "Sorry, your browser does not support web storage...";
+        }
+        }
+        function times() {
+            return sessionStorage.clickcount
+        }
+        </script>
+    </body>
+</html>
