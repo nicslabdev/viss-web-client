@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>VISS MANAGER - AGTs</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="icon" href="images/favicon.ico">
+		<link rel="stylesheet" href="/styles/menu.css" type="text/css">
+		<link rel="stylesheet" href="/styles/general.css" type="text/css">
+		<script src="wasm_exec.js"></script>
+		<script> 
+			const go = new Go();
+			WebAssembly.instantiateStreaming(fetch("scripts/go/lib.wasm"), go.importObject).then((result) => {
+				go.run(result.instance);
+			});
+		</script>
+        <script src = "scripts/js/encoding.js"></script>
+	</head>
+	<body>
+		<script src = "scripts/js/menu.js"></script>
+		<h1>MAIN PAGE</h1>
+		<h2>Key Management</h2>
+		<h3>RSA Key</h3>
+		<div class = "horiz_click_list" id = "rsa">
+			<button onclick = "generateRsa()" class="normal_button" id = "genRsaButton">Generate New RSA Key</button>
+			<button onclick = "importRsa()" class="normal_button" id = "impRsaButton">Import RSA Key</button>
+			<button onclick = "showRsa()" class="normal_button" id = "showRsaButton">Show RSA Key</button>
+		</div>
+		<p id = "rsaData" class="gen">Not avaliable</p>
+		<h3>ECDSA Key</h3>
+		<div class = "horiz_click_list" id = "ecdsa">
+			<button onclick = "generateEcdsa()" class="normal_button" id = "genEcdsaButton">Generate New ECDSA Key</button>
+			<button onclick = "importEcdsa()" class="normal_button" id = "impEcdsaButton">Import ECDSA Key</button>
+			<button onclick = "showEcdsa()" class="normal_button" id = "showEcdsaButton">Show ECDSA Key</button>
+		</div>
+		<p id = "ecdsaData" class ="gen">Not avaliable</p>
+		
+		<script>
+			function init() {
+				if(localStorage.getItem("rsaKey")!== null){
+					document.getElementById("rsaData").textContent = "RSA Key Avaliable"
+				}
+				if(localStorage.getItem("ecdsaKey") !== null){
+					document.getElementById("ecdsaData").textContent = "ECDSA Key Avaliable"
+				}
+			}
+			init()
+
+			function importRsa(){
+				document.getElementById("rsaData").textContent = "Not supported already"
+			}
+			function showRsa(){
+				if (localStorage.getItem("rsaKey") === null){
+					document.getElementById("rsaData").textContent = "No RSA Key Avaliable"
+				} else{
+					document.getElementById("rsaData").textContent = localStorage.getItem("rsaKey") 
+				}
+			}
+			function importEcdsa(){
+				document.getElementById("ecdsaData").textContent = "Not supported already"
+			}
+			function showEcdsa(){
+				if (localStorage.getItem("ecdsaKey") === null){
+					document.getElementById("ecdsaData").textContent = "No ECDSA Key Avaliable"
+				} else{
+					document.getElementById("ecdsaData").textContent = localStorage.getItem("ecdsaKey") 
+				}
+			}		
+		</script>
+	</body>
+</html>

@@ -1,0 +1,142 @@
+  body{
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  h1{
+    color: rgb(0, 87, 145);
+    margin-left: 30px;
+}
+
+  h2{
+    color: rgb(0, 87, 145);
+    margin-left: 30px;
+}
+
+  h3{
+    color: rgb(0, 87, 145);
+    margin-left: 30px;
+}
+
+  .gen {
+  margin-left: 30px
+}
+
+/* Horizontal button list*/
+  .horiz_click_list {
+    margin-left: 30px;
+  }
+
+  .horiz_click_list .normal_button{
+    padding: 10px 15px;
+    min-width: 200px;
+    max-width: 200px;
+
+    box-shadow:inset 0px 34px 0px -15px rgb(0, 153, 255);
+    background:rgb(11, 133, 247);
+    border:1px solid #4e6096;
+    color: whitesmoke;
+    text-shadow:0px -1px 0px #283966;
+  }
+
+  .horiz_click_list .normal_button:hover{
+    background-color: rgb(0, 87, 145);
+  }
+
+  .horiz_click_list .arrow_button {
+    box-shadow:inset 0px 40px 0px -15px rgb(0, 153, 255);
+    background:rgb(11, 133, 247);
+    color: whitesmoke;
+    border: none;
+    text-align: center;
+    font-size: 20px;
+    padding: 10px;
+    width: 200px;
+    transition: all 0.5s;
+    cursor: pointer;
+    margin: 5px;
+    border:1px solid #4e6096;
+  }
+  
+  .horiz_click_list .arrow_button span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+  }
+  
+  .horiz_click_list .arrow_button span:after {
+    content: '\00bb';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+  }
+  
+  .horiz_click_list .arrow_button:hover span {
+    padding-right: 25px;
+  }
+  
+  .horiz_click_list .arrow_button:hover span:after {
+    opacity: 1;
+    right: 0;
+  }
+/* End horizontal button list*/
+
+/* Vertical selection list*/
+  .vert_select_list{
+    margin-left: 30px;
+
+  }
+  .vert_select_list .subject{
+    color: rgb(0, 87, 145);
+    font-size: 18px;
+  }
+  .vert_select_list input{
+    width: 20%;
+    padding: 9px 12px;
+    margin: 0px 0px;
+    margin-bottom: 8px;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 14;
+    background-color: aliceblue;
+  }
+  .vert_select_list select{
+    width: 20%;
+    padding: 8px 12px;
+    margin: 0px 0px;
+    margin-bottom: 8px;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 14;
+    background-color: aliceblue;
+  }
+
+  .vert_select_list .column{
+    float: left;
+    padding-right: 15px;
+    height: auto;
+    width: 15%;
+  }
+
+  .vert_select_list .column input{
+    width: 90%;
+  }
+
+  .vert_select_list .column select{
+    width: 90%;
+  }
+
+  .row:after{
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+  .vert_select_list label{
+    text-decoration: solid;
+    font-weight:500;
+  }
+/* End vertical selection list*/
