@@ -13,7 +13,9 @@ package utils
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"syscall/js"
+	"time"
 )
 
 func PrintErr(err interface{}) {
@@ -30,6 +32,19 @@ func Print(data string) {
 	js.Global().Get("console").Call("log", fmt.Sprint(data))
 }
 
-func Log(data string) {
-	js.Global().Get("document").Call("log", data)
+func timeConv(tim int) string {
+	if tim < 10 {
+		return "0" + strconv.Itoa(tim)
+	} else {
+		return strconv.Itoa(tim)
+	}
+}
+
+func Log(typ string, data string) {
+	act_val := js.Global().Get("document").Call("getElementById", "log_data").Get("innerHTML")
+	current := time.Now()
+	datestr := timeConv(current.Day()) + "/" + timeConv(int(current.Month())) + "/" +
+		timeConv(current.Year()) + ", " + timeConv(current.Hour()) + ":" + timeConv(current.Minute()) + ":" + timeConv(current.Second())
+	dat := fmt.Sprint(act_val) + string(datestr) + " " + typ + ": " + data + "<br>"
+	js.Global().Get("document").Call("getElementById", "log_data").Set("innerHTML", dat)
 }

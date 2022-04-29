@@ -140,3 +140,20 @@
     font-weight:500;
   }
 /* End vertical selection list*/
+
+/* Data Box */
+  .data_box{
+    margin-left: 30px;
+  }
+
+  .data_box .subject{
+    color: rgb(0, 87, 145);
+    font-size: 18px;
+  }
+
+  .data_box .data{
+    padding-left: 7px;
+  }
+
+
+/* End data box */

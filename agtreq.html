@@ -2,7 +2,7 @@
 
 <html>
 	<head>
-        <title>VISS MANAGER - AGTs</title>
+        <title>VISS MANAGER - AGT Request</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="icon" href="images/favicon.ico">
@@ -78,16 +78,23 @@
         
         <div class="horiz_click_list">
             <br><button onclick="sendAgtReq()" class="arrow_button"><span>Send</span></button> 
-            <input type="checkbox" id="log_switch">
+            <input type="checkbox" id="log_switch" checked>
             <span>Logs</span>
         </div>
+
+        <div class="data_box" id="logs">
+            <p class="subject">Logs<br></p> 
+            <p id="log_data" class="data"></p>
+            <button onclick="logReset()">Reset</button>
+        </div>
+
         
         <p id = "agReq" style="display:none"></p>
         <p id = "agPop" style="display:none"></p>
         <p id = "agResp" style="display:none"></p>   
-        <p id = "logs"  style = display:none>LOGS       asdasd<br></p>
         
         <!-- Script for style changes and logs-->
+        <script src = "scripts/js/logs.js"></script>
         <script>
             document.getElementById("sign_type").addEventListener("change", showPopOpts)
             document.getElementById("log_switch").addEventListener("input", showLogs)
@@ -97,21 +104,6 @@
                     document.getElementById("pop_opts").style.display = "none"
                 } else{
                     document.getElementById("pop_opts").style.display = "block"
-                }
-            }
-
-            function log(data) {
-                document.getElementById("logs").innerHTML += data + "<br>"
-                return document.getElementById("logs").value
-            }
-            function logreset() {
-                document.getElementById("logs").value = "LOGS <br>"
-            }
-            function showLogs() {
-                if (document.getElementById("log_switch").checked){
-                    document.getElementById("logs").style.display = "block"
-                } else {
-                    document.getElementById("logs").style.display = "none"
                 }
             }
         </script>
@@ -134,15 +126,21 @@
                 req = jsonRecursiveEncoding("proof", document.getElementById("proof").value, req);
                 return req;
             }
-
+            
             try {
                 function sendAgtReq(){
                     let xhttpreq = new XMLHttpRequest();
                     xhttpreq.onreadystatechange = function(){
                         if(this.readyState == 4){
                             if (this.status != 200){
-                                agResp.textContent = "Error: status:" + this.status + ", data: " + this.statusText;
+                                logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText);
                             } else{
+                                if (this.responseText.length > 55){
+                                    logStatus("Info", "HTTP Response received: "+this.responseText.slice(0, 55)+ "...");
+                                } else{
+                                    logStatus("Info", "HTTP Response received: "+this.responseText);
+                                }
+                                
                                 agResp.textContent = "Response: " + this.responseText;
                             }
                             agResp.style.display = "block";
@@ -152,25 +150,30 @@
                     xhttpreq.open("POST", agtURL, true);
                     //xhttpreq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
                     let req = genAgtReq();
-                    
+                    logStatus("Info", "Request Body Generated")
+
                     if (((document.getElementById("sign_type").value == "RS256")&&(localStorage.rsaKey != null )) || 
                     ((document.getElementById("sign_type").value == "ES256")&&(localStorage.ecdsaKey != null ))) {
+                        logStatus("Info", "Generating POP")
                         let pop = generatePop()
                         if (pop != ""){
                             xhttpreq.setRequestHeader("PoP", pop);
                             req = jsonRecursiveEncoding("key", document.getElementById("jwk_thumb").textContent, req);
+                            logStatus("Info", "POP generated correctly")
                         } else {
-                            agReq.textContent = "Nothing sent"
+                            logStatus("Error", "POP could not be generated")
                             return 
                         }
+                    } else {
+                        logStatus("Info", "POP not used, expecting not long term token")
                     }
                     agReq.textContent = req;
                     agReq.style.display = "block";
+                    logStatus("Info", "Sending AGT Request")
                     xhttpreq.send(req);
                 }
             } catch(err){
-                agResp.textContent = "Error: " + err.message;
-                agResp.style.display = "block";
+                logStatus("Error", err.message)
             }
         </script>
     </body>
