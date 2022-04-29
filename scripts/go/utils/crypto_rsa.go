@@ -1,5 +1,5 @@
 /**
-*	VISS-MANAGER: crypto_ecdsa: methods related to rsa signature and rsa key encoding
+*	VISS-MANAGER: crypto_rsa: methods related to rsa signature and rsa key encoding
 *
 *	Copyright (C) 2022  NICS Lab, University of Malaga
 *	Author: Jose Jesus Sanchez Gomez, sanchezg@lcc.uma.es
