@@ -23,6 +23,7 @@
         <script src = "scripts/js/menu.js"></script>
 		<h2>Access Grant Token Client</h2><br>
 
+
         <div id = gt_opts class="vert_select_list">
             <p class="subject">Grant Token Request</p>
             <div class = "row">
@@ -73,26 +74,28 @@
                     </div>            
                 </div>  
             </div>
-        </div>
+                </div>
+
+                <div class="horiz_click_list">
+                    <br><button onclick="sendAgtReq()" class="arrow_button"><span>Send</span></button> 
+                    <input type="checkbox" id="log_switch" checked>
+                    <span>Logs</span>
+                </div>
+        
+                <div class="data_box" id="logs">
+                    <p class="subject">Logs<br></p> 
+                    <p id="log_data" class="data"></p>
+                    <button onclick="logReset()">Reset</button>
+                </div>
+
 
         
-        <div class="horiz_click_list">
-            <br><button onclick="sendAgtReq()" class="arrow_button"><span>Send</span></button> 
-            <input type="checkbox" id="log_switch" checked>
-            <span>Logs</span>
+                <p id = "agReq" style="display:none"></p>
+                <p id = "agPop" style="display:none"></p>
+                <p id = "agResp" style="display:none"></p>  
+            </div>
         </div>
 
-        <div class="data_box" id="logs">
-            <p class="subject">Logs<br></p> 
-            <p id="log_data" class="data"></p>
-            <button onclick="logReset()">Reset</button>
-        </div>
-
-        
-        <p id = "agReq" style="display:none"></p>
-        <p id = "agPop" style="display:none"></p>
-        <p id = "agResp" style="display:none"></p>   
-        
         <!-- Script for style changes and logs-->
         <script src = "scripts/js/logs.js"></script>
         <script>

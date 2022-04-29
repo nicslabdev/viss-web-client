@@ -82,6 +82,7 @@
   }
 /* End horizontal button list*/
 
+
 /* Vertical selection list*/
   .vert_select_list{
     margin-left: 30px;
@@ -118,7 +119,7 @@
     float: left;
     padding-right: 15px;
     height: auto;
-    width: 15%;
+    width: 30%;
   }
 
   .vert_select_list .column input{
