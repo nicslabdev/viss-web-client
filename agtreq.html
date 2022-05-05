@@ -91,6 +91,8 @@
             <div id = "right_col" class = "mid_col">
                 <button onclick="togPrettyRaw()" class="gen_button" style="margin-left: 30px;">TOGGLE</button>
                 <button onclick="saveAgToken()" class="gen_button">SAVE TOKEN</button>
+                <input id = "tokenID" class="gen_input" placeholder="Token ID">
+                <p id ="saveStatus" style="margin-left: 30px;"></p>
                 <div id = "raw" style="display: block;">
                     <div class="data_box_bordered">
                         <p class="subject">Request</p> 
@@ -162,6 +164,7 @@
         </script>
         <!-- Request maker-->
         <script>
+            var receivedToken;
             // AGT Requester
             var agtURL = 'http://150.214.47.151:61057/agts';
             //var agtURL = 'http://127.0.0.1:7500/agts';
@@ -203,6 +206,9 @@
                                     document.getElementById("agRespTypPretty").innerHTML = "Response: error";
                                 }  else if (json_resp.token !== undefined){
                                     agResp.innerHTML = response;
+                                    receivedToken = json_resp.token;
+                                    readySave = true;
+                                    document.getElementById("saveStatus").innerHTML = "";
                                     let agTk = jwtPretty(json_resp.token);
                                     document.getElementById("agRespPretty_head").innerHTML = agTk[0]
                                     document.getElementById("agRespPretty_payl").innerHTML = agTk[1]
@@ -253,6 +259,37 @@
                 }
             } catch(err){
                 logStatus("Error", err.message)
+            }
+        </script>
+        <!-- Token saver-->
+        <script>
+            var readySave = false
+            function saveAgToken(){
+                if (!readySave){
+                    document.getElementById("saveStatus").innerHTML = "Can not save: not a token or new token not received";
+                } else if (document.getElementById("tokenID").value == ""){
+                    document.getElementById("saveStatus").innerHTML = "Can not save: enter token id";
+                } else {
+                    let token_id = document.getElementById("tokenID").value;
+                    let token_typ;
+                    if (document.getElementById("sign_type").value == "None"){
+                        token_typ = "AGT_NO_LT";
+                    } else if (document.getElementById("sign_type").value == "RS256"){
+                        token_typ = "AGT_RSA";
+                    } else if (document.getElementById("sign_type").value == "ES256"){
+                        token_typ = "AGT_ECDSA";
+                    }
+                    let act = localStorage[token_typ];
+                    if (act === undefined){ // Initialize localstorage value
+                        localStorage[token_typ] = '{"' + token_id + '":"' + receivedToken + '"}'
+                    } else {
+                        list = JSON.parse(act);
+                        list[token_id] = receivedToken;
+                        localStorage[token_typ] = JSON.stringify(list);
+                        document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
+                    }  
+                    readySave = false;
+                }
             }
         </script>
     </body>

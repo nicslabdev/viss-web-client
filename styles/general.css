@@ -210,16 +210,32 @@
   }
 /* End middle division */
 
-/* Grey button */
+/* Gen button */
   .gen_button {
     padding: 10px 15px;
     min-width: 50;
     margin: 5px;
     margin-right: 0px;
     border: #ccc;
-    background-color: #ccc;
+    border-width: 100px 1px;
+    background-color: aliceblue;
   }
   .gen_button:hover{
     background-color: rgba(204, 204, 204, 0.329);
   }
-/* End grey button */
+/* End gen button */
+ 
+/* Gen input */
+  .gen_input{
+    padding: 10px 15px;
+    min-width: 200px;
+    max-width: 200px;
+    min-height: 15px;
+    min-height: 15px;
+    margin: 5px;
+    margin-right: 0px;
+    border: #ccc;
+    background-color: aliceblue;
+  }
+
+/* End gen input*/
