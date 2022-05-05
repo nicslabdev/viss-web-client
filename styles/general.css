@@ -16,6 +16,11 @@
     margin-left: 30px;
 }
 
+  h5{
+    color: rgb(0, 87, 145);
+    margin-left: 30px;
+  }
+
   .gen {
   margin-left: 30px
 }
@@ -154,7 +159,67 @@
 
   .data_box .data{
     padding-left: 7px;
+    overflow: auto;
+  }
+/* End data box */
+
+/* Bordered Data Box */
+.data_box_bordered{
+  margin-left: 30px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ccc;
+  border-radius: 5px;
+}
+
+.data_box_bordered .subject{
+  color: rgb(0, 87, 145);
+  font-size: 18px;
+  padding-left: 10px;
+  padding-bottom: 10px;
+  border-color: #ccc;
+  border-bottom-style: solid;
+  border-width: 1px;
+}
+
+.data_box_bordered .data{
+  padding-left: 7px;
+  overflow: auto;
+}
+/* End bordered data box */
+
+
+/* Middle division */
+  * {
+    box-sizing: border-box;
+  }
+  
+  .mid_col {
+    float: left;
+    width: 50%;
+    max-width: 50%;
+    padding: 10px;
+    overflow:inherit
   }
 
+  /* Clear floats after the columns */
+  .mid_div:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+/* End middle division */
 
-/* End data box */
+/* Grey button */
+  .gen_button {
+    padding: 10px 15px;
+    min-width: 50;
+    margin: 5px;
+    margin-right: 0px;
+    border: #ccc;
+    background-color: #ccc;
+  }
+  .gen_button:hover{
+    background-color: rgba(204, 204, 204, 0.329);
+  }
+/* End grey button */
