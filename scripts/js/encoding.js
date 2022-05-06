@@ -12,18 +12,21 @@ function jsonRecursiveEncoding(claim, value, encoded){
     return data
 }
 
-function jsonPrettify(jsonraw){
+function jsonPrettify(jsonraw, indexation){
     let jsonObj = JSON.parse(jsonraw)
-    return JSON.stringify(jsonObj, null, "\t")
+    if (indexation == undefined){
+        indexation = "\t"
+    }
+    return JSON.stringify(jsonObj, null, indexation)
 }
 
-function jwtPretty(jwtraw){
+function jwtPretty(jwtraw, indexation){
     let jwtsplit
     jwtsplit = jwtraw.split(".",2)
     if (jwtsplit[0] == jwtraw){
-        return jsonPrettify(jsonraw)
+        return jsonPrettify(jwtraw, indexation)
     }
     header = atob(jwtsplit[0])
     payload = atob(jwtsplit[1])
-    return [jsonPrettify(header), jsonPrettify(payload)]
+    return [jsonPrettify(header, indexation), jsonPrettify(payload, indexation)]
 }

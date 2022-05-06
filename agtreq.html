@@ -96,29 +96,29 @@
                 <div id = "raw" style="display: block;">
                     <div class="data_box_bordered">
                         <p class="subject">Request</p> 
-                        <p id="agReq" class="data"></p>
+                        <p id="Req" class="data"></p>
                     </div>
                     <div class="data_box_bordered">
                         <p class="subject">Response</p>
-                        <p id = "agResp" class="data"></p>
+                        <p id = "Resp" class="data"></p>
                     </div>
                     <div class="data_box_bordered">
                         <p class="subject">POP<br></p>
-                        <p id="agPop" class="data"></p>
+                        <p id="Pop" class="data"></p>
                     </div>
                 </div>
                 <div id = "pretty" style="display: none;">
                     <div class="data_box_bordered">
                         <p class="subject">Request</p> 
-                        <pre id="agReqPretty" class="data"></pre>
+                        <pre id="ReqPretty" class="data"></pre>
                     </div>
                     <div class="data_box_bordered">
-                        <p class="subject" id = "agRespTypPretty">Response</p>
+                        <p class="subject" id = "RespTypPretty">Response</p>
                         <div id = "RespOK" style="display: block;">
                             <h5>Header</h5>
-                            <pre id = "agRespPretty_head" class = "data"></pre>
+                            <pre id = "RespPretty_head" class = "data"></pre>
                             <h5>Payload</h5>
-                            <pre id = "agRespPretty_payl" class="data"></pre>
+                            <pre id = "RespPretty_payl" class="data"></pre>
                         </div>
                         <div id = "RespFail" style="display: none;">
                             <p class="data" id="RespErr"></p>
@@ -127,9 +127,9 @@
                     <div class="data_box_bordered">
                         <p class="subject">POP<br></p>
                         <h5>Header</h5>
-                        <pre id="agPopPretty_head" class="data"></pre>
+                        <pre id="PopPretty_head" class="data"></pre>
                         <h5>Payload</h5>
-                        <pre id="agPopPretty_payl" class="data"></pre>
+                        <pre id="PopPretty_payl" class="data"></pre>
                     </div>
                 </div>
             </div>
@@ -168,10 +168,10 @@
             // AGT Requester
             var agtURL = 'http://150.214.47.151:61057/agts';
             //var agtURL = 'http://127.0.0.1:7500/agts';
-            var agReq = document.getElementById("agReq");
-            var agPop = document.getElementById("agPop");
-            var agResp = document.getElementById("agResp");
-            var agRespTyp = document.getElementById("agRespTyp")
+            var Req = document.getElementById("Req");
+            var Pop = document.getElementById("Pop");
+            var Resp = document.getElementById("Resp");
+            var RespTyp = document.getElementById("RespTyp")
             var key_thumb;
 
             function genAgtReq() {
@@ -199,24 +199,24 @@
                                 let response = this.responseText;
                                 let json_resp = JSON.parse(response);
                                 if (json_resp.error !== undefined){ // Error
-                                    agResp.innerHTML = response;
+                                    Resp.innerHTML = response;
                                     document.getElementById("RespErr").innerHTML = json_resp.error;
                                     document.getElementById("RespOK").style.display = "none";
                                     document.getElementById("RespFail").style.display = "block";
-                                    document.getElementById("agRespTypPretty").innerHTML = "Response: error";
+                                    document.getElementById("RespTypPretty").innerHTML = "Response: error";
                                 }  else if (json_resp.token !== undefined){
-                                    agResp.innerHTML = response;
+                                    Resp.innerHTML = response;
                                     receivedToken = json_resp.token;
                                     readySave = true;
                                     document.getElementById("saveStatus").innerHTML = "";
                                     let agTk = jwtPretty(json_resp.token);
-                                    document.getElementById("agRespPretty_head").innerHTML = agTk[0]
-                                    document.getElementById("agRespPretty_payl").innerHTML = agTk[1]
+                                    document.getElementById("RespPretty_head").innerHTML = agTk[0]
+                                    document.getElementById("RespPretty_payl").innerHTML = agTk[1]
                                     document.getElementById("RespOK").style.display = "block";
                                     document.getElementById("RespFail").style.display = "none";
-                                    document.getElementById("agRespTypPretty").innerHTML = "Response: token";
+                                    document.getElementById("RespTypPretty").innerHTML = "Response: token";
                                 } else {
-                                    agResp.innerHTML = response;
+                                    Resp.innerHTML = response;
                                 }
                             }
                         }
@@ -231,29 +231,29 @@
                     ((document.getElementById("sign_type").value == "ES256")&&(localStorage.ecdsaKey != null ))) {
                         logStatus("Info", "Generating POP")
                         let pop = generatePop()
-                        agPop.innerHTML = pop
+                        Pop.innerHTML = pop
 
                         if (pop != ""){
                             xhttpreq.setRequestHeader("PoP", pop);
                             req = jsonRecursiveEncoding("key", document.getElementById("jwk_thumb").textContent, req);
                             logStatus("Info", "POP generated correctly")
                             let popPretty = jwtPretty(pop)
-                            document.getElementById("agPopPretty_head").innerHTML = popPretty[0]
-                            document.getElementById("agPopPretty_payl").innerHTML = popPretty[1]
+                            document.getElementById("PopPretty_head").innerHTML = popPretty[0]
+                            document.getElementById("PopPretty_payl").innerHTML = popPretty[1]
                         } else {
                             logStatus("Error", "POP could not be generated")
-                            document.getElementById("agPopPretty_head").innerHTML = pop
-                            document.getElementById("agPopPretty_payl").innerHTML = ""
+                            document.getElementById("PopPretty_head").innerHTML = pop
+                            document.getElementById("PopPretty_payl").innerHTML = ""
                             return
                         }
                     } else {
                         logStatus("Info", "POP not used, expecting not long term token")
-                        agPop.innerHTML = ""
-                        document.getElementById("agPopPretty_head").innerHTML = ""
-                        document.getElementById("agPopPretty_payl").innerHTML = ""
+                        Pop.innerHTML = ""
+                        document.getElementById("PopPretty_head").innerHTML = ""
+                        document.getElementById("PopPretty_payl").innerHTML = ""
                     }
-                    agReq.textContent = req;
-                    document.getElementById("agReqPretty").innerHTML = jsonPrettify(req)
+                    Req.textContent = req;
+                    document.getElementById("ReqPretty").innerHTML = jsonPrettify(req)
                     logStatus("Info", "Sending AGT Request")
                     xhttpreq.send(req);
                 }
