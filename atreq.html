@@ -2,11 +2,12 @@
 
 <html>
 	<head>
-        <title>VISS MANAGER - ATs</title>
+        <title>VISS MANAGER - AT Request</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="icon" href="images/favicon.ico">
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="/styles/menu.css" type="text/css">
+		<link rel="stylesheet" href="/styles/general.css" type="text/css">
 		<script src="wasm_exec.js"></script>
 		<script> //type="module"
 			//import axios from 'axios': USED TO FETCH WHEN NOT USING WEB SERVER
@@ -19,171 +20,364 @@
         <script src = "scripts/js/encoding.js"></script>
 	</head>
 	<body>
-        <a href="index.html">HOME</a><br>
-		<h2>Access Grant Token Client</h2><br>
+        <script src = "scripts/js/menu.js"></script>
+		<h2>Access Token Client</h2><br>
 
-        <div id = gt_opts>
-            <h3>Grant Token Request</h3>
-            <label for="vin"><b>Vehicle Number</b></label>
-            <input id="vin" type="text" placeholder="GEO001"/>
-            <br><b>User Role</b>
-            <select id = "user_role" name = "user_role">
-                <option value = "Dealer">Dealer</option>
-                <option value = "OEM">OEM</option>
-                <option value = "Independent">Independent</option>
-                <option value = "Owner">Owner</option>
-                <option value = "Driver">Driver</option>
-                <option value = "Passenger">Passenger</option>
-            </select>
-            <br><b>Application Role</b>
-            <select id="app_role" name = "app_role">
-                <option value = "OEM">OEM</option>
-                <option value = "Third party">Third Party</option>
-            </select>
-            <br><b>Device Role</b>
-            <select id="dev_role" name = "dev_role">
-                <option value = "Vehicle">Vehicle</option>
-                <option value = "Nomadic">Nomadic</option>
-                <option value = "Cloud">Cloud</option>
-            </select>
-            <br><label for="Proof"><b>Proof:</b></label>
-            <input id="proof" type="text" value = "ABC" placeholder="ABC (not yet implemented)"/>
-            <br><b>Signature Type</b>
-            <select id = "sign_type" name = "sign_type">
-                <option value = "None">None</option>
-                <option value = "RS256">RS256</option>
-                <option value = "EC256">EC256</option>
-            </select>    
+        <div class = "mid_div">
+            <div id = left_col class = "mid_col">
+                <div id = gt_opts class="vert_select_list">
+                    <p class="subject">Access Token Request</p>
+                    <div class = "row">
+                        <div class = "column">
+                            <label for="pur">Purpose</label>
+                            <br><select id = "pur" name = "pur"></select>
+                            <label for = "tkn">AG Token</label>
+                            <br><select id = "tkn" name = "tkn">
+                                <option value = "None">None</option>
+                            </select>
+                            <br><label for="sign_type" name>Signature Type</label>
+                            <br><select id = "sign_type" name = "sign_type">
+                                <option value = "Auto">Auto</option>
+                                <option value = "None">None</option>
+                                <option value = "RS256">RS256</option>
+                                <option value = "ES256">ES256</option>
+                            </select>  
+                        </div>
+                        <div class="column">
+                            <div id = pop_opts style="display:none">
+                                <label for="pop_jti">JTI</label>
+                                <br><input id = "pop_jti" type = "text" value = "auto" placeholder = "default: auto">
+                                <br><label for="pop_aud">AUD</label>
+                                <br><input id = "pop_aud" type = "text" value = "vissv2/ats" placeholder = "default: vissv2/ats">
+                                <br><label for = "pop_iat">IAT</label>
+                                <br><input id = "pop_iat" type = "text" value = "auto" placeholder = "auto, +1, -1, 123">
+                                <br><label for = "jwk_thumb" style="display:none;"><b>Public Key</b></label>
+                                <br><output id = "jwk_thumb" type = "text" style="display: none;"></output>
+                            </div>            
+                        </div>
+                        <div class="column" style="width: 50%;">
+                            <div class="data_box_bordered">
+                                <p class="subject" id = "AgToken" style="margin: 5px; padding:0px; padding-bottom:2px">AG Token</p>
+                                <pre id = "AgTokenContent" class="data"></pre>
+                            </div>
+                        </div>  
+                    </div>
+                </div>
+                <div class="horiz_click_list">
+                    <br><button onclick="sendAtReq()" class="arrow_button"><span>Send</span></button> 
+                    <input type="checkbox" id="log_switch" checked>
+                    <span>Logs</span>
+                </div>
+                <div class="data_box" id="logs">
+                    <p class="subject">Logs<br></p> 
+                    <p id="log_data" class="data"></p>
+                    <button onclick="logReset()">Reset</button>
+                </div>  
+            </div>
+            <div id = "right_col" class = "mid_col">
+                <button onclick="togPrettyRaw()" class="gen_button" style="margin-left: 30px;">TOGGLE</button>
+                <button onclick="saveAToken()" class="gen_button">SAVE TOKEN</button>
+                <input id = "tokenID" class="gen_input" placeholder="Token ID">
+                <p id ="saveStatus" style="margin-left: 30px;"></p>
+                <div id = "raw" style="display: block;">
+                    <div class="data_box_bordered">
+                        <p class="subject">Request</p> 
+                        <p id="Req" class="data"></p>
+                    </div>
+                    <div class="data_box_bordered">
+                        <p class="subject">Response</p>
+                        <p id = "Resp" class="data"></p>
+                    </div>
+                    <div class="data_box_bordered">
+                        <p class="subject">POP<br></p>
+                        <p id="Pop" class="data"></p>
+                    </div>
+                </div>
+                <div id = "pretty" style="display: none;">
+                    <div class="data_box_bordered">
+                        <p class="subject">Request</p> 
+                        <pre id="ReqPretty" class="data"></pre>
+                    </div>
+                    <div class="data_box_bordered">
+                        <p class="subject" id = "RespTypPretty">Response</p>
+                        <div id = "RespOK" style="display: block;">
+                            <h5>Header</h5>
+                            <pre id = "RespPretty_head" class = "data"></pre>
+                            <h5>Payload</h5>
+                            <pre id = "RespPretty_payl" class="data"></pre>
+                        </div>
+                        <div id = "RespFail" style="display: none;">
+                            <p class="data" id="RespErr"></p>
+                        </div>
+                    </div>
+                    <div class="data_box_bordered">
+                        <p class="subject">POP<br></p>
+                        <h5>Header</h5>
+                        <pre id="PopPretty_head" class="data"></pre>
+                        <h5>Payload</h5>
+                        <pre id="PopPretty_payl" class="data"></pre>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id = pop_opts style="display:none">
-            <h4>POP Parameters</h4>
-            <label for="pop_jti"><b>JTI: </b></label>
-            <input id = "pop_jti" type = "text" value = "auto" placeholder = "default: auto">
-            <br><label for="pop_aud"><b>AUD: </b></label>
-            <input id = "pop_aud" type = "text" value = "vissv2/agts" placeholder = "default: vissv2/agts">
-            <br><label for = "pop_iat"><b>IAT: </b>Default: Auto, Custom: +1, -1 or fixed value</label>
-            <input id = "pop_iat" type = "text" value = "auto" placeholder = "auto, +1, -1, 123">
-            <br><label for = "jwk_thumb"><b>Public key: </b></label>
-            <output id = "jwk_thumb" type = "text"></output>
-        </div>
+        
+        
 
-        <br><button onclick="sendAgtReq()"> --- SEND --- </button>
-        <button onclick="logshow()">toggle log</button>
- 
-        <p id = "agReq" style="display:none"></p>
-        <p id = "agPop" style="display:none"></p>
-        <p id = "agResp" style="display:none"></p>   
-        
-        <p id = "logs"  style = display:none>LOGS<br></p>
-        
         <!-- Script for style changes and logs-->
+        <script src = "scripts/js/logs.js"></script>
+        <script src = "scripts/js/encoding.js"></script>
+        <!-- Fill purpose and AGtoken select-->
+        <script>
+            purposeFiller();
+            function purposeFiller(){
+                let jsonPurposes;
+                let xhr = new XMLHttpRequest();
+                let sel = document.getElementById("pur");
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        jsonPurposes = JSON.parse(xhr.responseText);
+                        for (let i = 0; i < jsonPurposes.purposes.length; i++){
+                            sel.insertAdjacentHTML("beforeend", '<option value="'+jsonPurposes.purposes[i].short+'">'+jsonPurposes.purposes[i].short + '</option>')
+                        }
+                    }
+                }
+                xhr.open('GET', '/specs/purposelist.json');
+                xhr.send();
+            }
+
+            agtFiller();
+            function agtFiller(){
+                // RSA signed tokens
+                let sel = document.getElementById("tkn");
+                if (localStorage.AGT_RSA != undefined && localStorage.AGT_RSA != ""){
+                    let jsonRsa = JSON.parse(localStorage.AGT_RSA);
+                    for(var key in jsonRsa){
+                        let insert = '<option value = "RSA:'+key+'">RSA: '+ key + '</option>';
+                        sel.insertAdjacentHTML("beforeend", insert);
+                    }
+                }
+                // ECDSA tokens
+                if (localStorage.AGT_ECDSA != undefined && localStorage.AGT_ECDSA != ""){
+                    let jsonEcdsa = JSON.parse(localStorage.AGT_ECDSA);
+                    for (var key in jsonEcdsa){
+                        let insert = '<option value = "ECDSA:'+key+'">ECDSA: ' + key + '</option>';
+                        sel.insertAdjacentHTML("beforeend", insert);
+                    }
+                }
+                // NO POP tokens
+                if (localStorage.AGT_NO_LT != undefined && localStorage.AGT_NO_LT != ""){
+                    let jsonNoLT = JSON.parse(localStorage.AGT_NO_LT);
+                    for (var key in jsonNoLT){
+                        let insert = '<option value = "NOLT:'+key+'">NO LT: '+ key + '</option>';
+                        sel.insertAdjacentHTML("beforeend", insert);
+                    }
+                }
+            }
+        </script>
+        <!-- Toggle data format-->
         <script>
             document.getElementById("sign_type").addEventListener("change", showPopOpts)
+            document.getElementById("log_switch").addEventListener("input", showLogs)
+            document.getElementById("tkn").addEventListener("change", showAGT)
 
             function showPopOpts() {
-                if (document.getElementById("sign_type").value == "" || document.getElementById("sign_type").value == "None"){
+                if (document.getElementById("sign_type").value == "" || document.getElementById("sign_type").value == "None" 
+                || document.getElementById("sign_type".value = "Auto")){
                     document.getElementById("pop_opts").style.display = "none"
                 } else{
                     document.getElementById("pop_opts").style.display = "block"
                 }
             }
-
-            function log(data) {
-                document.getElementById("logs").innerHTML += data + "<br>"
-                return document.getElementById("logs").value
+            function togPrettyRaw(){
+                if (document.getElementById("raw").style.display == "none"){
+                    document.getElementById("raw").style.display = "block"
+                    document.getElementById("pretty").style.display = "none"
+                } else{
+                    document.getElementById("raw").style.display = "none"
+                    document.getElementById("pretty").style.display = "block"
+                }
             }
-            function logreset() {
-                document.getElementById("logs").value = "LOGS <br>"
-            }
-            function logshow() {
-                logstyle = document.getElementById("logs").style
-                if (logstyle.display == "block"){
-                    logstyle.display = "none"
+            function showAGT(){
+                let agt = document.getElementById("AgTokenContent")
+                let tokenId = document.getElementById("tkn").value
+                let tkn, tknjson
+                if (tokenId!= "None"){
+                    if (tokenId.search("RSA:") >= 0){
+                        tokenTyp = "RS256";
+                        tokenId = tokenId.slice(tokenId.search(":")+1);
+                        let rsajson = JSON.parse(localStorage.AGT_RSA);
+                        tkn = rsajson[tokenId];
+                    } else if (tokenId.search("ECDSA:") >= 0){
+                        tokenTyp = "EC256";
+                        tokenId = tokenId.slice(tokenId.search(":")+1);
+                        let ecdsajson = JSON.parse(localStorage.AGT_ECDSA);
+                        tkn = ecdsajson[tokenId];
+                    } else if (tokenId.search("NOLT:") >= 0){
+                        tokenTyp = "None";
+                        tokenId = tokenId.slice(tokenId.search(":")+1);
+                        let nopopjson = JSON.parse(localStorage.AGT_NO_LT);
+                        tkn = nopopjson[tokenId];
+                    }
+                    tknjson = jwtPretty(tkn, " ");
+                    agt.innerHTML = tknjson[1];
                 } else {
-                    logstyle.display = "block"
+                    agt.innerHTML = ""
                 }
             }
         </script>
-
         <!-- Request maker-->
         <script>
-            // AGT Requester
-            var agtURL = 'http://agt_url:61057/agts';
+            var receivedToken;
+            // AT Requester
+            var atURL = 'http://150.214.47.151:61061/ats';
             //var agtURL = 'http://127.0.0.1:7500/agts';
-            var agReq = document.getElementById("agReq");
-            var agPop = document.getElementById("agPop");
-            var agResp = document.getElementById("agResp");
+            var Req = document.getElementById("Req");
+            var Pop = document.getElementById("Pop");
+            var Resp = document.getElementById("Resp");
+            var RespTyp = document.getElementById("RespTyp");
             var key_thumb;
+            let sign_type;
 
-            function genAgtReq() {
+            function genAtReq() {
                 let req;
-                req = jsonRecursiveEncoding("vin", document.getElementById("vin").value, "");
-                req = jsonRecursiveEncoding("context",document.getElementById("user_role").value + "+"
-                + document.getElementById("app_role").value + "+" + document.getElementById("dev_role").value, req);
-                req = jsonRecursiveEncoding("proof", document.getElementById("proof").value, req);
+                req = jsonRecursiveEncoding("purpose", document.getElementById("pur").value, "");
+                let tokenId = document.getElementById("tkn").value;
+                let tokenTyp = "None"
+                // Token choosing
+                if (tokenId != "None"){
+                    if (tokenId.search("RSA:") >= 0){
+                        tokenTyp = "RS256";
+                        tokenId = tokenId.slice(tokenId.search(":")+1);
+                        let rsajson = JSON.parse(localStorage.AGT_RSA);
+                        req = jsonRecursiveEncoding("token", rsajson[tokenId], req);
+                        console.log("RSA")
+                    } else if (tokenId.search("ECDSA:") >= 0){
+                        tokenTyp = "EC256";
+                        tokenId = tokenId.slice(tokenId.search(":")+1);
+                        let ecdsajson = JSON.parse(localStorage.AGT_ECDSA);
+                        req = jsonRecursiveEncoding("token", ecdsajson[tokenId], req);
+                        console.log("ECDSA")
+                    } else if (tokenId.search("NOLT:") >= 0){
+                        tokenTyp = "None";
+                        tokenId = tokenId.slice(tokenId.search(":")+1);
+                        let nopopjson = JSON.parse(localStorage.AGT_NO_LT);
+                        req = jsonRecursiveEncoding("token", nopopjson[tokenId], req);
+                        console.log("NOLT")
+                    } else {
+                        console.log("PROBLEM")
+                    }
+                }
+                console.log(req)
+                // Pop generation
+                let signTyp = document.getElementById("sign_type").value;
+                let pop = ""
+                if (signTyp == "Auto"){
+                    signTyp = tokenTyp
+                }
+                
+                if (((signTyp == "RS256")&&(localStorage.rsaKey != null )) || 
+                ((signTyp == "ES256")&&(localStorage.ecdsaKey != null ))) {
+                    logStatus("Info", "Generating POP");
+                    pop = generatePop();
+                    if (pop != ""){
+                        req = jsonRecursiveEncoding("pop", pop, req);
+                        logStatus("Info", "POP generated correctly");
+                        let popPretty = jwtPretty(pop);
+                        document.getElementById("PopPretty_head").innerHTML = popPretty[0];
+                        document.getElementById("PopPretty_payl").innerHTML = popPretty[1];
+                        Pop.innerHTML = pop;
+                    } else {
+                        logStatus("Error", "POP could not be generated")
+                        document.getElementById("PopPretty_head").innerHTML = pop;
+                        document.getElementById("PopPretty_payl").innerHTML = "";
+                        Pop.innerHTML = pop;
+                    }
+                } else {
+                    logStatus("Info", "POP not used");
+                    document.getElementById("PopPretty_head").innerHTML = "";
+                    document.getElementById("PopPretty_payl").innerHTML = "";
+                    Pop.innerHTML = pop;
+                }
+                logStatus("Info", "Request body generated");
                 return req;
             }
-
+            
             try {
-                function sendAgtReq(){
+                function sendAtReq(){
                     let xhttpreq = new XMLHttpRequest();
                     xhttpreq.onreadystatechange = function(){
                         if(this.readyState == 4){
                             if (this.status != 200){
-                                agResp.textContent = "Error: status:" + this.status + ", data: " + this.statusText;
+                                logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText);
                             } else{
-                                agResp.textContent = "Response: " + this.responseText;
+                                if (this.responseText.length > 55){
+                                    logStatus("Info", "HTTP Response received: "+this.responseText.slice(0, 55)+ "...");
+                                } else{
+                                    logStatus("Info", "HTTP Response received: "+this.responseText);
+                                }
+                                let response = this.responseText;
+                                let json_resp = JSON.parse(response);
+                                if (json_resp.error !== undefined){ // Error
+                                    Resp.innerHTML = response;
+                                    document.getElementById("RespErr").innerHTML = json_resp.error;
+                                    document.getElementById("RespOK").style.display = "none";
+                                    document.getElementById("RespFail").style.display = "block";
+                                    document.getElementById("RespTypPretty").innerHTML = "Response: error";
+                                }  else if (json_resp.token !== undefined){
+                                    Resp.innerHTML = response;
+                                    receivedToken = json_resp.token;
+                                    readySave = true;
+                                    document.getElementById("saveStatus").innerHTML = "";
+                                    let aTk = jwtPretty(json_resp.token);
+                                    document.getElementById("RespPretty_head").innerHTML = aTk[0]
+                                    document.getElementById("RespPretty_payl").innerHTML = aTk[1]
+                                    document.getElementById("RespOK").style.display = "block";
+                                    document.getElementById("RespFail").style.display = "none";
+                                    document.getElementById("RespTypPretty").innerHTML = "Response: token";
+                                } else {
+                                    Resp.innerHTML = response;
+                                }
                             }
-                            agResp.style.display = "block";
                         }
                     }
 
-                    xhttpreq.open("POST", agtURL, true);
-                    let req = genAgtReq();
-                    
-                    if (((document.getElementById("sign_type").value == "RS256")&&(localStorage.rsaKey != null )) || 
-                    ((document.getElementById("sign_type").value == "ES256")&&(localStorage.ecdsaKey != null ))) {
-                        let pop = generatePop()
-                        if (pop != ""){
-                            xhttpreq.setRequestHeader("PoP", pop);
-                            req = jsonRecursiveEncoding("key", document.getElementById("jwk_thumb").textContent, req);
-                        } else {
-                            return 
-                        }
-                    }
-                    agReq.textContent = req;
-                    agReq.style.display = "block";
+                    xhttpreq.open("POST", atURL, true);
+                    //xhttpreq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                    let req = genAtReq();
+                    console.log(req);
+                    logStatus("Info", "Request Body Generated")
+                    Req.textContent = req;
+                    document.getElementById("ReqPretty").innerHTML = jsonPrettify(req)
+                    logStatus("Info", "Sending AGT Request")
                     xhttpreq.send(req);
                 }
             } catch(err){
-                agResp.textContent = "Error: " + err.message;
-                agResp.style.display = "block";
+                logStatus("Error", err.message)
             }
         </script>
-
-        <p><button onclick="clickCounter()" type="button">Click me!</button></p>
-        <div id="result"></div>
-        <p>Click the button to see the counter increase.</p>
-        <p>Close the browser tab (or window), and try again, and the counter is reset.</p>
-
+        <!-- Token saver-->
         <script>
-        // Example LOCAL STORAGE
-        function clickCounter() {
-        if (typeof(Storage) !== "undefined") {
-            if (sessionStorage.clickcount) {
-            sessionStorage.clickcount = Number(sessionStorage.clickcount)+1;
-            } else {
-            sessionStorage.clickcount = 1;
+            var readySave = false
+            function saveAToken(){
+                if (!readySave){
+                    document.getElementById("saveStatus").innerHTML = "Can not save: not a token or new token not received";
+                } else if (document.getElementById("tokenID").value == ""){
+                    document.getElementById("saveStatus").innerHTML = "Can not save: enter token id";
+                } else {
+                    let token_id = document.getElementById("tokenID").value;
+                    let act = localStorage["AT"];
+                    if (act === undefined){ // Initialize localstorage value
+                        localStorage["AT"] = '{"' + token_id + '":"' + receivedToken + '"}'
+                    } else {
+                        list = JSON.parse(act);
+                        list[token_id] = receivedToken;
+                        localStorage["AT"] = JSON.stringify(list);
+                        document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
+                    }  
+                    readySave = false;
+                }
             }
-            document.getElementById("result").innerHTML = "You have clicked the button " + sessionStorage.clickcount + " time(s) in this session.";
-        } else {
-            document.getElementById("result").innerHTML = "Sorry, your browser does not support web storage...";
-        }
-        }
-        function times() {
-            return sessionStorage.clickcount
-        }
         </script>
     </body>
 </html>

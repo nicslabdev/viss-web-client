@@ -16,6 +16,11 @@
     margin-left: 30px;
 }
 
+  h5{
+    color: rgb(0, 87, 145);
+    margin-left: 30px;
+  }
+
   .gen {
   margin-left: 30px
 }
@@ -82,6 +87,7 @@
   }
 /* End horizontal button list*/
 
+
 /* Vertical selection list*/
   .vert_select_list{
     margin-left: 30px;
@@ -92,7 +98,6 @@
     font-size: 18px;
   }
   .vert_select_list input{
-    width: 20%;
     padding: 9px 12px;
     margin: 0px 0px;
     margin-bottom: 8px;
@@ -103,7 +108,6 @@
     background-color: aliceblue;
   }
   .vert_select_list select{
-    width: 20%;
     padding: 8px 12px;
     margin: 0px 0px;
     margin-bottom: 8px;
@@ -118,7 +122,7 @@
     float: left;
     padding-right: 15px;
     height: auto;
-    width: 15%;
+    width: 25%;
   }
 
   .vert_select_list .column input{
@@ -153,7 +157,83 @@
 
   .data_box .data{
     padding-left: 7px;
+    overflow: auto;
+  }
+/* End data box */
+
+/* Bordered Data Box */
+.data_box_bordered{
+  margin-left: 30px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ccc;
+  border-radius: 5px;
+}
+
+.data_box_bordered .subject{
+  color: rgb(0, 87, 145);
+  font-size: 18px;
+  padding-left: 10px;
+  padding-bottom: 10px;
+  border-color: #ccc;
+  border-bottom-style: solid;
+  border-width: 1px;
+}
+
+.data_box_bordered .data{
+  padding-left: 7px;
+  overflow: auto;
+}
+/* End bordered data box */
+
+
+/* Middle division */
+  * {
+    box-sizing: border-box;
+  }
+  
+  .mid_col {
+    float: left;
+    width: 50%;
+    max-width: 50%;
+    padding: 10px;
+    overflow:inherit
   }
 
+  /* Clear floats after the columns */
+  .mid_div:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+/* End middle division */
 
-/* End data box */
+/* Gen button */
+  .gen_button {
+    padding: 10px 15px;
+    min-width: 50;
+    margin: 5px;
+    margin-right: 0px;
+    border: #ccc;
+    border-width: 100px 1px;
+    background-color: aliceblue;
+  }
+  .gen_button:hover{
+    background-color: rgba(204, 204, 204, 0.329);
+  }
+/* End gen button */
+ 
+/* Gen input */
+  .gen_input{
+    padding: 10px 15px;
+    min-width: 200px;
+    max-width: 200px;
+    min-height: 15px;
+    min-height: 15px;
+    margin: 5px;
+    margin-right: 0px;
+    border: #ccc;
+    background-color: aliceblue;
+  }
+
+/* End gen input*/

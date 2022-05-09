@@ -23,78 +23,124 @@
         <script src = "scripts/js/menu.js"></script>
 		<h2>Access Grant Token Client</h2><br>
 
-        <div id = gt_opts class="vert_select_list">
-            <p class="subject">Grant Token Request</p>
-            <div class = "row">
-                <div class = "column">
-                    <label for="vin">Vehicle Number</label>
-                    <br><input id="vin" type="text" placeholder="GEO001"/>
-                    <br><label for="proof">Proof:</label>
-                    <br><input id="proof" type="text" value = "ABC" placeholder="ABC (not yet implemented)"/>
-                    <br><label for="sign_type" name>Signature Type</label>
-                    <br><select id = "sign_type" name = "sign_type">
-                        <option value = "None">None</option>
-                        <option value = "RS256">RS256</option>
-                        <option value = "ES256">ES256</option>
-                    </select>  
+        <div class = "mid_div">
+            <div id = left_col class = "mid_col">
+                <div id = gt_opts class="vert_select_list">
+                    <p class="subject">Grant Token Request</p>
+                    <div class = "row">
+                        <div class = "column">
+                            <label for="vin">Vehicle Number</label>
+                            <br><input id="vin" type="text" placeholder="GEO001"/>
+                            <br><label for="proof">Proof:</label>
+                            <br><input id="proof" type="text" value = "ABC" placeholder="ABC (not yet implemented)"/>
+                            <br><label for="sign_type" name>Signature Type</label>
+                            <br><select id = "sign_type" name = "sign_type">
+                                <option value = "None">None</option>
+                                <option value = "RS256">RS256</option>
+                                <option value = "ES256">ES256</option>
+                            </select>  
+                        </div>
+                        <div class = "column">
+                            <label for="user_role">User Role</label> 
+                            <br><select id = "user_role" name = "user_role">
+                                <option value = "Dealer">Dealer</option>
+                                <option value = "OEM">OEM</option>
+                                <option value = "Independent">Independent</option>
+                                <option value = "Owner">Owner</option>
+                                <option value = "Driver">Driver</option>
+                                <option value = "Passenger">Passenger</option>
+                            </select>
+                            <br> <label for="app_role">App Role</label>
+                            <br><select id="app_role" name = "app_role">
+                                <option value = "OEM">OEM</option>
+                                <option value = "Third party">Third Party</option>
+                            </select>
+                            <br><label for="dev_role">Device Role</label>
+                            <br><select id="dev_role" name = "dev_role">
+                                <option value = "Vehicle">Vehicle</option>
+                                <option value = "Nomadic">Nomadic</option>
+                                <option value = "Cloud">Cloud</option>
+                            </select> 
+                        </div>
+                        <div class="column">
+                            <div id = pop_opts style="display:none">
+                                <label for="pop_jti">JTI</label>
+                                <br><input id = "pop_jti" type = "text" value = "auto" placeholder = "default: auto">
+                                <br><label for="pop_aud">AUD</label>
+                                <br><input id = "pop_aud" type = "text" value = "vissv2/agts" placeholder = "default: vissv2/agts">
+                                <br><label for = "pop_iat">IAT</label>
+                                <br><input id = "pop_iat" type = "text" value = "auto" placeholder = "auto, +1, -1, 123">
+                                <br><label for = "jwk_thumb" style="display:none;"><b>Public Key</b></label>
+                                <br><output id = "jwk_thumb" type = "text" style="display: none;"></output>
+                            </div>            
+                        </div>  
+                    </div>
                 </div>
-                <div class = "column">
-                    <label for="user_role">User Role</label> 
-                    <br><select id = "user_role" name = "user_role">
-                        <option value = "Dealer">Dealer</option>
-                        <option value = "OEM">OEM</option>
-                        <option value = "Independent">Independent</option>
-                        <option value = "Owner">Owner</option>
-                        <option value = "Driver">Driver</option>
-                        <option value = "Passenger">Passenger</option>
-                    </select>
-                    <br> <label for="app_role">App Role</label>
-                    <br><select id="app_role" name = "app_role">
-                        <option value = "OEM">OEM</option>
-                        <option value = "Third party">Third Party</option>
-                    </select>
-                    <br><label for="dev_role">Device Role</label>
-                    <br><select id="dev_role" name = "dev_role">
-                        <option value = "Vehicle">Vehicle</option>
-                        <option value = "Nomadic">Nomadic</option>
-                        <option value = "Cloud">Cloud</option>
-                    </select> 
+                <div class="horiz_click_list">
+                    <br><button onclick="sendAgtReq()" class="arrow_button"><span>Send</span></button> 
+                    <input type="checkbox" id="log_switch" checked>
+                    <span>Logs</span>
                 </div>
-                <div class="column">
-                    <div id = pop_opts style="display:none">
-                        <label for="pop_jti">JTI</label>
-                        <br><input id = "pop_jti" type = "text" value = "auto" placeholder = "default: auto">
-                        <br><label for="pop_aud">AUD</label>
-                        <br><input id = "pop_aud" type = "text" value = "vissv2/agts" placeholder = "default: vissv2/agts">
-                        <br><label for = "pop_iat">IAT</label>
-                        <br><input id = "pop_iat" type = "text" value = "auto" placeholder = "auto, +1, -1, 123">
-                        <br><label for = "jwk_thumb" style="display:none;"><b>Public Key</b></label>
-                        <br><output id = "jwk_thumb" type = "text" style="display: none;"></output>
-                    </div>            
+        
+                <div class="data_box" id="logs">
+                    <p class="subject">Logs<br></p> 
+                    <p id="log_data" class="data"></p>
+                    <button onclick="logReset()">Reset</button>
                 </div>  
+            </div>
+            <div id = "right_col" class = "mid_col">
+                <button onclick="togPrettyRaw()" class="gen_button" style="margin-left: 30px;">TOGGLE</button>
+                <button onclick="saveAgToken()" class="gen_button">SAVE TOKEN</button>
+                <input id = "tokenID" class="gen_input" placeholder="Token ID">
+                <p id ="saveStatus" style="margin-left: 30px;"></p>
+                <div id = "raw" style="display: block;">
+                    <div class="data_box_bordered">
+                        <p class="subject">Request</p> 
+                        <p id="Req" class="data"></p>
+                    </div>
+                    <div class="data_box_bordered">
+                        <p class="subject">Response</p>
+                        <p id = "Resp" class="data"></p>
+                    </div>
+                    <div class="data_box_bordered">
+                        <p class="subject">POP<br></p>
+                        <p id="Pop" class="data"></p>
+                    </div>
+                </div>
+                <div id = "pretty" style="display: none;">
+                    <div class="data_box_bordered">
+                        <p class="subject">Request</p> 
+                        <pre id="ReqPretty" class="data"></pre>
+                    </div>
+                    <div class="data_box_bordered">
+                        <p class="subject" id = "RespTypPretty">Response</p>
+                        <div id = "RespOK" style="display: block;">
+                            <h5>Header</h5>
+                            <pre id = "RespPretty_head" class = "data"></pre>
+                            <h5>Payload</h5>
+                            <pre id = "RespPretty_payl" class="data"></pre>
+                        </div>
+                        <div id = "RespFail" style="display: none;">
+                            <p class="data" id="RespErr"></p>
+                        </div>
+                    </div>
+                    <div class="data_box_bordered">
+                        <p class="subject">POP<br></p>
+                        <h5>Header</h5>
+                        <pre id="PopPretty_head" class="data"></pre>
+                        <h5>Payload</h5>
+                        <pre id="PopPretty_payl" class="data"></pre>
+                    </div>
+                </div>
             </div>
         </div>
 
         
-        <div class="horiz_click_list">
-            <br><button onclick="sendAgtReq()" class="arrow_button"><span>Send</span></button> 
-            <input type="checkbox" id="log_switch" checked>
-            <span>Logs</span>
-        </div>
-
-        <div class="data_box" id="logs">
-            <p class="subject">Logs<br></p> 
-            <p id="log_data" class="data"></p>
-            <button onclick="logReset()">Reset</button>
-        </div>
-
         
-        <p id = "agReq" style="display:none"></p>
-        <p id = "agPop" style="display:none"></p>
-        <p id = "agResp" style="display:none"></p>   
-        
+
         <!-- Script for style changes and logs-->
         <script src = "scripts/js/logs.js"></script>
+        <script src = "scripts/js/encoding.js"></script>
         <script>
             document.getElementById("sign_type").addEventListener("change", showPopOpts)
             document.getElementById("log_switch").addEventListener("input", showLogs)
@@ -106,16 +152,26 @@
                     document.getElementById("pop_opts").style.display = "block"
                 }
             }
+            function togPrettyRaw(){
+                if (document.getElementById("raw").style.display == "none"){
+                    document.getElementById("raw").style.display = "block"
+                    document.getElementById("pretty").style.display = "none"
+                } else{
+                    document.getElementById("raw").style.display = "none"
+                    document.getElementById("pretty").style.display = "block"
+                }
+            }
         </script>
-
         <!-- Request maker-->
         <script>
+            var receivedToken;
             // AGT Requester
             var agtURL = 'http://150.214.47.151:61057/agts';
             //var agtURL = 'http://127.0.0.1:7500/agts';
-            var agReq = document.getElementById("agReq");
-            var agPop = document.getElementById("agPop");
-            var agResp = document.getElementById("agResp");
+            var Req = document.getElementById("Req");
+            var Pop = document.getElementById("Pop");
+            var Resp = document.getElementById("Resp");
+            var RespTyp = document.getElementById("RespTyp")
             var key_thumb;
 
             function genAgtReq() {
@@ -140,10 +196,29 @@
                                 } else{
                                     logStatus("Info", "HTTP Response received: "+this.responseText);
                                 }
-                                
-                                agResp.textContent = "Response: " + this.responseText;
+                                let response = this.responseText;
+                                let json_resp = JSON.parse(response);
+                                if (json_resp.error !== undefined){ // Error
+                                    Resp.innerHTML = response;
+                                    document.getElementById("RespErr").innerHTML = json_resp.error;
+                                    document.getElementById("RespOK").style.display = "none";
+                                    document.getElementById("RespFail").style.display = "block";
+                                    document.getElementById("RespTypPretty").innerHTML = "Response: error";
+                                }  else if (json_resp.token !== undefined){
+                                    Resp.innerHTML = response;
+                                    receivedToken = json_resp.token;
+                                    readySave = true;
+                                    document.getElementById("saveStatus").innerHTML = "";
+                                    let agTk = jwtPretty(json_resp.token);
+                                    document.getElementById("RespPretty_head").innerHTML = agTk[0]
+                                    document.getElementById("RespPretty_payl").innerHTML = agTk[1]
+                                    document.getElementById("RespOK").style.display = "block";
+                                    document.getElementById("RespFail").style.display = "none";
+                                    document.getElementById("RespTypPretty").innerHTML = "Response: token";
+                                } else {
+                                    Resp.innerHTML = response;
+                                }
                             }
-                            agResp.style.display = "block";
                         }
                     }
 
@@ -156,24 +231,65 @@
                     ((document.getElementById("sign_type").value == "ES256")&&(localStorage.ecdsaKey != null ))) {
                         logStatus("Info", "Generating POP")
                         let pop = generatePop()
+                        Pop.innerHTML = pop
+
                         if (pop != ""){
                             xhttpreq.setRequestHeader("PoP", pop);
                             req = jsonRecursiveEncoding("key", document.getElementById("jwk_thumb").textContent, req);
                             logStatus("Info", "POP generated correctly")
+                            let popPretty = jwtPretty(pop)
+                            document.getElementById("PopPretty_head").innerHTML = popPretty[0]
+                            document.getElementById("PopPretty_payl").innerHTML = popPretty[1]
                         } else {
                             logStatus("Error", "POP could not be generated")
-                            return 
+                            document.getElementById("PopPretty_head").innerHTML = pop
+                            document.getElementById("PopPretty_payl").innerHTML = ""
+                            return
                         }
                     } else {
                         logStatus("Info", "POP not used, expecting not long term token")
+                        Pop.innerHTML = ""
+                        document.getElementById("PopPretty_head").innerHTML = ""
+                        document.getElementById("PopPretty_payl").innerHTML = ""
                     }
-                    agReq.textContent = req;
-                    agReq.style.display = "block";
+                    Req.textContent = req;
+                    document.getElementById("ReqPretty").innerHTML = jsonPrettify(req)
                     logStatus("Info", "Sending AGT Request")
                     xhttpreq.send(req);
                 }
             } catch(err){
                 logStatus("Error", err.message)
+            }
+        </script>
+        <!-- Token saver-->
+        <script>
+            var readySave = false
+            function saveAgToken(){
+                if (!readySave){
+                    document.getElementById("saveStatus").innerHTML = "Can not save: not a token or new token not received";
+                } else if (document.getElementById("tokenID").value == ""){
+                    document.getElementById("saveStatus").innerHTML = "Can not save: enter token id";
+                } else {
+                    let token_id = document.getElementById("tokenID").value;
+                    let token_typ;
+                    if (document.getElementById("sign_type").value == "None"){
+                        token_typ = "AGT_NO_LT";
+                    } else if (document.getElementById("sign_type").value == "RS256"){
+                        token_typ = "AGT_RSA";
+                    } else if (document.getElementById("sign_type").value == "ES256"){
+                        token_typ = "AGT_ECDSA";
+                    }
+                    let act = localStorage[token_typ];
+                    if (act === undefined){ // Initialize localstorage value
+                        localStorage[token_typ] = '{"' + token_id + '":"' + receivedToken + '"}'
+                    } else {
+                        list = JSON.parse(act);
+                        list[token_id] = receivedToken;
+                        localStorage[token_typ] = JSON.stringify(list);
+                        document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
+                    }  
+                    readySave = false;
+                }
             }
         </script>
     </body>
