@@ -9,7 +9,7 @@
 *
 **/
 
-// GOARCH=wasm GOOS=js go build -o lib.wasm main.go
+// GOARCH=wasm GOOS=js go build -o golib.wasm main.go
 
 package main
 
