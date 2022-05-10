@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+        <title>VISS MANAGER - VISS Request</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="icon" href="images/favicon.ico">
+        <link rel="stylesheet" href="/styles/menu.css" type="text/css">
+		<link rel="stylesheet" href="/styles/general.css" type="text/css">
+		<script src="wasm_exec.js"></script>
+		<script> //type="module"
+			//import axios from 'axios': USED TO FETCH WHEN NOT USING WEB SERVER
+			const go = new Go();
+			//WebAssembly.instantiateStreaming(axios.get("scripts/go/lib.wasm"), go.importObject).then((result) => {
+			WebAssembly.instantiateStreaming(fetch("scripts/go/lib.wasm"), go.importObject).then((result) => {
+				go.run(result.instance);
+			});
+		</script>
+        <script src = "scripts/js/encoding.js"></script>
+	</head>
+	<body>
+        <script src = "scripts/js/menu.js"></script>
+		<h2>VISS Client</h2><br>
+
+        <div class = "mid_div">
+            <div id = left_col class = "mid_col">
+                <div id = gt_opts class="vert_select_list">
+                    <p class="subject">VISS Request</p>
+                    <div class = "row">
+                        <div class = "column">
+                            <label for = "token">Access Token</label>
+                            <br><select id = "token" name = "token">
+                                <option value = "None">None</option>
+                            </select>
+                            <label for = "protocol">Protocol</label>
+                            <br><select id = "protocol" name = "protocol">
+                                <option value = "HTTP">HTTP</option>
+                                <option value = "WS">WebSocket</option>
+                                <option value = "MQTT">MQTT</option>
+                            </select>
+                            <label for = "method">Method</label>
+                            <br><select id = "method" name = "method"></select>
+                            <div style="font-size: 10px;"> Note: Only HTTP Authorized Read Supported at the moment </div>
+                        </div>
+                        <div class="column">
+                            <div id = "req_url">
+                                <label for = "req0">Request URL</label>
+                                <br><select id = "req0" name = "token">
+                                    <option value = "">None</option>
+                                </select>
+                                <select id = "req1" name = "token" style="display: none;"></select>
+                                <select id = "req2" name = "token" style="display: none;"></select>
+                                <select id = "req3" name = "token" style="display: none;"></select>
+                                <select id = "req4" name = "token" style="display: none;"></select>
+                                <select id = "req5" name = "token" style="display: none;"></select>
+                                <select id = "req6" name = "token" style="display: none;"></select>
+                                <select id = "req7" name = "token" style="display: none;"></select>
+                                <select id = "req8" name = "token" style="display: none;"></select>
+                                <select id = "req9" name = "token" style="display: none;"></select>
+                                <select id = "req10" name = "token" style="display: none;"></select>
+                                <select id = "req11" name = "token" style="display: none;"></select>
+                                <select id = "req12" name = "token" style="display: none;"></select>
+                                <select id = "req13" name = "token" style="display: none;"></select>
+                                <select id = "req14" name = "token" style="display: none;"></select>
+                                <select id = "req15" name = "token" style="display: none;"></select>
+                            </div>            
+                        </div>  
+                        <div class="column" style="width: 50%;">
+                            <div class="data_box_bordered">
+                                <p class="subject" id = "Token" style="margin: 5px; padding:0px; padding-bottom:2px">Access Token</p>
+                                <pre id = "TokenContent" class="data"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="horiz_click_list">
+                    <br><button onclick="sendVissReq()" class="arrow_button"><span>Send</span></button> 
+                    <input type="checkbox" id="log_switch" checked>
+                    <span>Logs</span>
+                </div>
+                <div class="data_box" id="logs">
+                    <p class="subject">Logs<br></p> 
+                    <p id="log_data" class="data"></p>
+                    <button onclick="logReset()">Reset</button>
+                </div>  
+            </div>
+            <div id = "right_col" class = "mid_col">
+                <div class="data_box_bordered">
+                    <p class="subject">Request</p> 
+                    <p id="Req" class="data"></p>
+                </div>
+                <div class="data_box_bordered">
+                    <p class="subject">Response</p>
+                    <p id = "Resp" class="data"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Script for style changes and logs-->
+        <script src = "scripts/js/logs.js"></script>
+        <script src = "scripts/js/encoding.js"></script>
+        <!-- Fill purpose and Access Token select-->
+        <script>
+            atFiller();
+            function atFiller(){
+                if (localStorage.AT != undefined && localStorage.AT != ""){
+                    let TokenList = JSON.parse(localStorage.AT)
+                    for(var key in TokenList){
+                        let insert = '<option value = "' + key + '">'+ key + '</option>';
+                        document.getElementById("token").insertAdjacentHTML("beforeend", insert);
+                    }
+                }
+            }
+        </script>
+        <!-- Toggle data format-->
+        <script>
+            document.getElementById("log_switch").addEventListener("input", showLogs);
+            document.getElementById("token").addEventListener("change", showAT);
+            document.getElementById("protocol").addEventListener("change", methodFiller);
+
+            function togPrettyRaw(){
+                if (document.getElementById("raw").style.display == "none"){
+                    document.getElementById("raw").style.display = "block"
+                    document.getElementById("pretty").style.display = "none"
+                } else{
+                    document.getElementById("raw").style.display = "none"
+                    document.getElementById("pretty").style.display = "block"
+                }
+            }
+            function showAT(){
+                let tokenId = document.getElementById("token").value;
+                let tokens;
+                if (localStorage.AT != undefined && localStorage.AT != ""){
+                    tokens = JSON.parse(localStorage.AT);
+                    if (tokens[tokenId] != undefined){
+                        let prettyPayl = jwtPretty(tokens[tokenId], " ");
+                        document.getElementById("TokenContent").innerHTML = prettyPayl[1]
+                    }
+                }
+            }
+            methodFiller();
+            function methodFiller(){
+                let method = document.getElementById("method")
+                switch (document.getElementById("protocol").value){
+                    case "HTTP":
+                        method.innerHTML = '<option value = "Authorized Read">Authorized Read</option>';
+                        method.insertAdjacentHTML("beforeend", '<option value = "Search Read">Search Read</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "History Read">History Read</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Signal Discovery Read">Signal Discovery Read</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Dynamic Metadata Read">Dynamic Metadata Read</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Authorized Update">Authorized Update</option>');
+                        break;
+                    case "WS":
+                        method.innerHTML = '<option value = "Authorized Read">Authorized Read</option>';
+                        method.insertAdjacentHTML("beforeend", '<option value = "Search Read">Search Read</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "History Read">History Read</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Signal Discovery Read">Signal Discovery Read</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Authorized Update">Authorized Update</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Authorized Subscribe">Authorized Subscribe</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Curve Logging Subscribe">Curve Logging Subscribe</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Range Subscribe">Range Subscribe</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Change Subscribe">Change Subscribe</option>');
+                        method.insertAdjacentHTML("beforeend", '<option value = "Unsubscribe">Unsubscribe</option>');
+                        break;
+                    case "MQTT":
+                        method.innerHTML = ""
+                        break;
+                }
+            }
+
+            var dataTree = treeInit()
+            function treeInit(){
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        let helptree = JSON.parse(xhr.responseText)
+                        dataTree = pathListJson(JSON.stringify(helptree["LeafPaths"]))
+                        for (let key in dataTree){
+                            document.getElementById("req0").insertAdjacentHTML("beforeend", '<option value = "' + key + '">' + key + '</option>');
+                        }
+                    }
+                }
+                xhr.open('GET', '/specs/vsspathlist.json');
+                xhr.send();
+            }
+
+            let requests = document.getElementById("req_url").querySelectorAll('select');
+            for (i of requests) {
+            i.addEventListener("change", function() {
+                reqUpdate(this.id); 
+            });
+            }
+
+            function reqUpdate(id){
+                id = id.split("req");
+                id = parseInt(id[1], 10);
+                for (let i = id + 1; i <= 15; i++){ // Deletes all claims dependent of it
+                    document.getElementById("req"+i).style.display = "none";
+                    document.getElementById("req"+i).innerHTML = "";
+                    document.getElementById("req"+i).value = "";
+                }
+                let nextClaims = dataTree; // Get next claims
+                for (let i = 0; i <= id; i++){
+                    nextClaims = nextClaims[document.getElementById("req"+i).value]
+                }
+                seltoAdd = document.getElementById("req"+(id+1)) // Fills next one
+                if (nextClaims != "undefined"){
+                    for (let key in nextClaims){
+                        seltoAdd.style.display = "block";
+                        seltoAdd.insertAdjacentHTML("afterbegin", '<option value = "' + key + '">' + key + '</option>');
+                    }
+                }
+            }
+        </script>
+        <!-- Request maker-->
+        <script>
+            var vissHTTPURL = 'http://150.214.47.151:61063';
+            var vissWSUTL = "-"
+            var vissMQTTURL = "-"
+            
+            try {
+                function sendVissReq(){
+                    switch (document.getElementById("protocol").value){
+                        case "HTTP":
+                            switch (document.getElementById("method").value){
+                                case "Authorized Read":
+                                let xhttpreq = new XMLHttpRequest();
+                                xhttpreq.onreadystatechange = function(){
+                                    console.log("STATE: "+this.readyState)
+                                    if (this.readyState == 4){
+                                        if (this.status != 200){
+                                            logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText);
+                                        } else{
+                                            logStatus("Info", "HTTP Response received: "+this.responseText);
+                                            let response = this.responseText
+                                            resp = JSON.parse(response)
+                                            document.getElementById("Resp").innerHTML = JSON.stringify(resp)
+                                        }
+                                    }
+                                }
+                                path = generatePath();
+                                logStatus("Info", "Sending GET Request to " + vissHTTPURL+path)
+                                xhttpreq.open("GET", vissHTTPURL+path, true);
+                                xhttpreq.send();
+                            }
+                        case "MQTT":
+
+                        case "WS":
+                    }
+                }
+            } catch (err){
+                logStatus("Error", err.message);
+            }
+
+            function generatePath(){
+                let path = "";
+                for (let i = 0; i <= 15; i++){
+                    let val = document.getElementById("req"+i).value;
+                    if (val == ""){
+                        break;
+                    }
+                    path = path + "/" + val;
+                }
+                return path;
+            }
+        </script>
+    </body>
+</html>
