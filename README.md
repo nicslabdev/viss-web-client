@@ -8,7 +8,7 @@ GO version 1.17 is required, since some modules related to crypto are written in
 Since module compilation is required, a script that automatically compiles all modules is given.
 TLS communication between the web app and VISS servers must be used, although it is not already being used. It will be supported and implemented in future versions.
 
-A script is (will be) provided to automatically build the files provided and run the webserver. After using the script, client can be used visiting the URL: localhost:8080 in any browser supporting localStorage because Keys Generated and Tokens received are stored in the browser.
+A script is (will be) provided to automatically build the files provided and run the webserver. After using the script, client can be used visiting localhost:8080 in any browser supporting localStorage because Keys Generated and Tokens received are stored in the browser.
 ```bash
 # compile files and start the webserver
 $./viss-manager run
