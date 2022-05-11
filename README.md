@@ -10,8 +10,10 @@ TLS communication between the web app and VISS servers must be used, although it
 
 VISS server, AGT server and AT server must be launched along with the web client. Their IPs and ports must be set in each HTML file, inside the script containing the URL. These servers must be launched after cloning the repository <a href="https://github.com/josesnchz/WAII">josesnchz/WAII</a> and following the steps provided in it.
 
-A script is (will be) provided to automatically build the files provided and run the webserver. After using the script, client can be used visiting localhost:8080 in any browser supporting localStorage because Keys Generated and Tokens received are stored in the browser.
+A script is (will be) provided to automatically build the files provided and run the webserver. After using the script, client can be used visiting localhost:8080 in any browser supporting localStorage because Keys Generated and Tokens received are stored in the browser. In case the script is used, it is required to have screen installed, it can be downloaded and installed from the official repository.
 ```bash
+# get screen
+$sudo apt install screen
 # compile files and start the webserver
 $./viss-manager -run
 # stop the webserver
