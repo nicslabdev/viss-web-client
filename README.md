@@ -60,3 +60,5 @@ Received tokens can be saved.
 The client uses one of the tokens provided from the AT server to access data.
 Multiple protocols and methods will be supported.
 The data requested is selected after parsing the vsspathlist.json file, as descrived above
+
+## Management System Architecture
