@@ -13,9 +13,9 @@ VISS server, AGT server and AT server must be launched along with the web client
 A script is (will be) provided to automatically build the files provided and run the webserver. After using the script, client can be used visiting localhost:8080 in any browser supporting localStorage because Keys Generated and Tokens received are stored in the browser.
 ```bash
 # compile files and start the webserver
-$./viss-manager run
+$./viss-manager -run
 # stop the webserver
-$./viss-manager stop
+$./viss-manager -stop
 ```
 
 The client implements dynamic selection for the purpose of the AT request and the path of the VISS data request. Both of them depends on these files:
