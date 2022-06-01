@@ -23,24 +23,27 @@ import (
 )
 
 var (
-	listen = flag.String("listen", ":8080", "listen address")
-	dir    = flag.String("dir", ".", "directory to serve")
+	port = flag.String("port", ":8080", "listen address")
+	sec  = flag.String("sec", "no", "use TLS in HTTP or not")
 )
+
+func runHTTP() {
+	log.Printf("HTTP server listening on %s...", *port)
+	log.Fatal(http.ListenAndServe(*port, http.FileServer(http.Dir("."))))
+}
+
+func runHTTPS() {
+	log.Printf("HTTP server listening on %s...", *port)
+	log.Fatal(http.ListenAndServeTLS(*port, "server.crt", "server.key", http.FileServer(http.Dir("."))))
+}
 
 func main() {
 	flag.Parse()
-	log.Printf("listening on %q...", *listen)
-	log.Fatal(http.ListenAndServe(*listen, http.FileServer(http.Dir(*dir))))
+	if *sec == "no" {
+		runHTTP()
+	} else if *sec == "yes" {
+		runHTTPS()
+	} else {
+		log.Fatal("Invalid sec claim")
+	}
 }
-
-// func main() {
-// 	fs := http.FileServer(http.Dir(dir))
-// 	log.Print("Serving " + dir + " on http://localhost:8080")
-// 	http.ListenAndServe(":8080", http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-// 		resp.Header().Add("Cache-Control", "no-cache")
-// 		if strings.HasSuffix(req.URL.Path, ".wasm") {
-// 			resp.Header().Set("content-type", "application/wasm")
-// 		}
-// 		fs.ServeHTTP(resp, req)
-// 	}))
-// }
