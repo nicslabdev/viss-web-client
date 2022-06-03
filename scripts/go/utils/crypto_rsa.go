@@ -4,7 +4,7 @@
 *	Copyright (C) 2022  NICS Lab, University of Malaga
 *	Author: Jose Jesus Sanchez Gomez, sanchezg@lcc.uma.es
 *
-*	This program and all files in the repository at https://github.com/josesnchz/viss-manager
+*	This program and all files in the repository at https://github.com/nicslabdev/viss-web-client
 *	are distributed following the terms of the LICENSE file in the repository.
 *
 **/
