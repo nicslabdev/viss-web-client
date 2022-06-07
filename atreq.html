@@ -373,9 +373,8 @@
                         list = JSON.parse(act);
                         list[token_id] = receivedToken;
                         localStorage["AT"] = JSON.stringify(list);
-                        document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
-                        document.getElementById("saveStatus").style.display = "block";
                     }  
+                    document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
                     readySave = false;
                 }
             }
