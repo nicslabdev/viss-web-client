@@ -287,6 +287,7 @@
                         list[token_id] = receivedToken;
                         localStorage[token_typ] = JSON.stringify(list);
                         document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
+                        document.getElementById("saveStatus").style.display = "block";
                     }  
                     readySave = false;
                 }
