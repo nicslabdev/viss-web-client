@@ -18,8 +18,10 @@ package main
 
 import (
 	"flag"
+	"io/fs"
 	"log"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -33,12 +35,54 @@ func runHTTP() {
 }
 
 func runHTTPS() {
-	log.Printf("HTTP server listening on %s...", *port)
-	log.Fatal(http.ListenAndServeTLS(*port, "server.crt", "server.key", http.FileServer(http.Dir("."))))
+	log.Printf("HTTPS server listening on %s...", *port)
+	log.Fatal(http.ListenAndServeTLS(*port, "", "", nil))
+}
+
+func containsDotFile(name string) bool {
+	parts := strings.Split(name, "/")
+	for _, part := range parts {
+		if strings.HasPrefix(part, ".") {
+			return true
+		}
+	}
+	return false
+}
+
+type dotFileHidingFile struct {
+	http.File
+}
+
+func (f dotFileHidingFile) Readdir(n int) (fis []fs.FileInfo, err error) {
+	files, err := f.File.Readdir(n)
+	for _, file := range files { // Filters out the dot files
+		if !strings.HasPrefix(file.Name(), ".") {
+			fis = append(fis, file)
+		}
+	}
+	return
+}
+
+type dotFileHidingFileSystem struct {
+	http.FileSystem
+}
+
+func (fsys dotFileHidingFileSystem) Open(name string) (http.File, error) {
+	if containsDotFile(name) { // If dot file, return 403 response
+		return nil, fs.ErrPermission
+	}
+
+	file, err := fsys.FileSystem.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	return dotFileHidingFile{file}, err
 }
 
 func main() {
 	flag.Parse()
+	fsys := dotFileHidingFileSystem{http.Dir(".")}
+	http.Handle("/", http.FileServer(fsys))
 	if *sec == "no" {
 		runHTTP()
 	} else if *sec == "yes" {

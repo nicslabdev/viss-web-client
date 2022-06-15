@@ -2,12 +2,12 @@
 
 <html>
 	<head>
-        <title>VISS MANAGER - AT Request</title>
+        <title>VISS Web Client - AT Request</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="icon" href="images/favicon.ico">
-        <link rel="stylesheet" href="/styles/menu.css" type="text/css">
-		<link rel="stylesheet" href="/styles/general.css" type="text/css">
+        <link rel="stylesheet" href="styles/menu.css" type="text/css">
+		<link rel="stylesheet" href="styles/general.css" type="text/css">
 		<script src="wasm_exec.js"></script>
 		<script> //type="module"
 			//import axios from 'axios': USED TO FETCH WHEN NOT USING WEB SERVER
@@ -230,7 +230,7 @@
         <script>
             var receivedToken;
             // AT Requester
-            var atURL = 'http://150.214.47.151:61061/ats';
+            var atURL = 'https://research.nics.uma.es:61061/ats';
             //var agtURL = 'http://127.0.0.1:7500/agts';
             var Req = document.getElementById("Req");
             var Pop = document.getElementById("Pop");
@@ -373,8 +373,8 @@
                         list = JSON.parse(act);
                         list[token_id] = receivedToken;
                         localStorage["AT"] = JSON.stringify(list);
-                        document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
                     }  
+                    document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
                     readySave = false;
                 }
             }
