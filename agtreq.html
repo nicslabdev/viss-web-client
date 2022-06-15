@@ -114,13 +114,13 @@
                     </div>
                     <div class="data_box_bordered">
                         <p class="subject" id = "RespTypPretty">Response</p>
-                        <div id = "RespOK" style="display: block;">
+                        <div id = "RespOK" style="display:block;">
                             <h5>Header</h5>
                             <pre id = "RespPretty_head" class = "data"></pre>
                             <h5>Payload</h5>
                             <pre id = "RespPretty_payl" class="data"></pre>
                         </div>
-                        <div id = "RespFail" style="display: none;">
+                        <div id = "RespFail" style="display:none;">
                             <p class="data" id="RespErr"></p>
                         </div>
                     </div>
@@ -166,12 +166,13 @@
         <script>
             var receivedToken;
             // AGT Requester
-            var agtURL = 'https://research.nics.uma.es:61057/agts';
-            //var agtURL = 'http://127.0.0.1:7500/agts';
+            var agtURL = 'http://localhost:7500/agts';
             var Req = document.getElementById("Req");
             var Pop = document.getElementById("Pop");
             var Resp = document.getElementById("Resp");
-            var RespTyp = document.getElementById("RespTyp")
+            var RespTypPretty = document.getElementById("RespTypPretty");
+            var RespPretty_head = document.getElementById("RespPretty_head");
+            var RespPretty_payl = document.getElementById("RespPretty_payl");
             var key_thumb;
 
             function genAgtReq() {
@@ -185,11 +186,23 @@
             
             try {
                 function sendAgtReq(){
+                    RespTypPretty.innerHTML = "Response";
+                    RespPretty_head.innerHTML = "";
+                    RespPretty_payl.innerHTML = "";
+                    Resp.innerHTML = "";
+
                     let xhttpreq = new XMLHttpRequest();
                     xhttpreq.onreadystatechange = function(){
                         if(this.readyState == 4){
                             if (this.status != 200){
-                                logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText);
+                                logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText + ". Response: " + this.responseText);
+                                let response = this.responseText;
+                                Resp.innerHTML = response;
+                                document.getElementById("RespErr").innerHTML = response;
+                                document.getElementById("RespOK").style.display = "none";
+                                document.getElementById("RespFail").style.display = "block";
+                                document.getElementById("RespTypPretty").innerHTML = "Response: Error "+this.status;
+                                Resp.innerHTML = response
                             } else{
                                 if (this.responseText.length > 55){
                                     logStatus("Info", "HTTP Response received: "+this.responseText.slice(0, 55)+ "...");
