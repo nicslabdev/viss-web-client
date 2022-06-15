@@ -12,6 +12,7 @@ function usage {
     echo "                    -runHTTPS: Starts webserver using HTTPS"
     echo "                    -stop: Stops the webserver"
     echo "Logs in screenlog.0 file"
+    echo "Flag -p for port choosing"
     exit 1
 }
 

@@ -18,6 +18,7 @@
 			});
 		</script>
         <script src = "scripts/js/encoding.js"></script>
+        <script src = "serverURLS.js"></script>
 	</head>
 	<body>
         <script src = "scripts/js/menu.js"></script>
@@ -214,11 +215,7 @@
             }
         </script>
         <!-- Request maker-->
-        <script>
-            var vissHTTPURL = 'https://research.nics.uma.es:61063';
-            var vissWSUTL = "-"
-            var vissMQTTURL = "-"
-            
+        <script>            
             try {
                 function sendVissReq(){
                     switch (document.getElementById("protocol").value){
