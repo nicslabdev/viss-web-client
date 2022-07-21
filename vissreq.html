@@ -19,116 +19,136 @@
 		</script>
         <script src = "scripts/js/encoding.js"></script>
         <script src = "serverURLS.js"></script>
+        <script src = "scripts/js/clientscripts.js"></script>
+        <script src = "scripts/js/logger.js"></script>
 	</head>
 	<body>
         <script src = "scripts/js/menu.js"></script>
 		<h2>VISS Client</h2><br>
-
-        <div class = "mid_div">
-            <div id = left_col class = "mid_col">
-                <div id = gt_opts class="vert_select_list">
-                    <p class="subject">VISS Request</p>
-                    <div class = "row">
-                        <div class = "column">
-                            <label for = "token">Access Token</label>
-                            <br><select id = "token" name = "token">
-                                <option value = "None">None</option>
-                            </select>
-                            <label for = "protocol">Protocol</label>
-                            <br><select id = "protocol" name = "protocol">
-                                <option value = "HTTP">HTTP</option>
-                                <option value = "WS">WebSocket</option>
-                                <option value = "MQTT">MQTT</option>
-                            </select>
-                            <label for = "method">Method</label>
-                            <br><select id = "method" name = "method"></select>
-                            <div style="font-size: 10px;"> Note: Only HTTP Authorized Read Supported at the moment </div>
-                        </div>
-                        <div class="column">
-                            <div id = "req_url">
-                                <label for = "req0">Request URL</label>
-                                <br><select id = "req0" name = "token">
-                                    <option value = "">None</option>
-                                </select>
-                                <select id = "req1" name = "token" style="display: none;"></select>
-                                <select id = "req2" name = "token" style="display: none;"></select>
-                                <select id = "req3" name = "token" style="display: none;"></select>
-                                <select id = "req4" name = "token" style="display: none;"></select>
-                                <select id = "req5" name = "token" style="display: none;"></select>
-                                <select id = "req6" name = "token" style="display: none;"></select>
-                                <select id = "req7" name = "token" style="display: none;"></select>
-                                <select id = "req8" name = "token" style="display: none;"></select>
-                                <select id = "req9" name = "token" style="display: none;"></select>
-                                <select id = "req10" name = "token" style="display: none;"></select>
-                                <select id = "req11" name = "token" style="display: none;"></select>
-                                <select id = "req12" name = "token" style="display: none;"></select>
-                                <select id = "req13" name = "token" style="display: none;"></select>
-                                <select id = "req14" name = "token" style="display: none;"></select>
-                                <select id = "req15" name = "token" style="display: none;"></select>
-                            </div>            
-                        </div>  
-                        <div class="column" style="width: 50%;">
-                            <div class="data_box_bordered">
-                                <p class="subject" id = "Token" style="margin: 5px; padding:0px; padding-bottom:2px">Access Token</p>
-                                <pre id = "TokenContent" class="data"></pre>
+        <div id = gt_opts class="vert_select_list">
+            <p class="subject">VISS Request</p>
+            <div class = "row">
+                <div class = "column" style="width: 15%;">
+                    <label for = "token">Access Token</label>
+                    <br><select id = "token" name = "token">
+                        <option value = "None">None</option>
+                    </select>
+                    <label for = "protocol">Protocol</label>
+                    <br><select id = "protocol" name = "protocol">
+                        <option value = "HTTP">HTTP</option>
+                        <option value = "WS">WebSocket</option>
+                        <option value = "MQTT">MQTT</option>
+                    </select>
+                    <label for = "method">Method</label>
+                    <br><select id = "method" name = "method"></select>
+                    <div style="font-size: 10px;"> Note: Only HTTP Read and WS Subscribe Supported at the moment </div>
+                    <br><button onclick="sendVissReq()" class="arrow_button"><span>Send</span></button> 
+                    <!-- <label class = "container">Logs
+                        <input type="checkbox" id="log_switch" checked>
+                        <span class="checkmark"></span>
+                    </label> -->
+                </div>
+                <div class="column" id = "url_col" style="width: 15%;">
+                    <div id = "req_url">
+                        <label for = "req0">Request URL</label>
+                        <br><select id = "req0" name = "token">
+                            <option value = "">-</option>
+                        </select>
+                        <select id = "req1" name = "token" style="display: none;"></select>
+                        <select id = "req2" name = "token" style="display: none;"></select>
+                        <select id = "req3" name = "token" style="display: none;"></select>
+                        <select id = "req4" name = "token" style="display: none;"></select>
+                        <select id = "req5" name = "token" style="display: none;"></select>
+                        <select id = "req6" name = "token" style="display: none;"></select>
+                        <select id = "req7" name = "token" style="display: none;"></select>
+                        <select id = "req8" name = "token" style="display: none;"></select>
+                        <select id = "req9" name = "token" style="display: none;"></select>
+                        <select id = "req10" name = "token" style="display: none;"></select>
+                        <select id = "req11" name = "token" style="display: none;"></select>
+                        <select id = "req12" name = "token" style="display: none;"></select>
+                        <select id = "req13" name = "token" style="display: none;"></select>
+                        <select id = "req14" name = "token" style="display: none;"></select>
+                        <select id = "req15" name = "token" style="display: none;"></select>
+                    </div> 
+                    <div id = "update_div" style="display: none;">
+                        <label for = "update_input">Update Value</label>
+                        <input type = "text" id = "update_input">
+                    </div>           
+                </div>
+                <div class = "column" id = "filter_col" style="width: 15%; display: none;">
+                    <label for = "filters">Filters</label>
+                    <dl id = "filters">
+                        <dt id = "timebased_div">
+                            <label for = "timebased_filt">Timebased</label>
+                            <input type="radio" id="timebased_filt" name = "filt_radio" unchecked>
+                            <div id = "timebased_filt_input" style="display: none;">
+                                <label for = "timebased_filt_period">Period (ms): </label>
+                                <input type = "text" id = "timebased_filt_period" placeholder="time between updates" >
                             </div>
-                        </div>
+                        </dt>
+                        <dt id = "path_div">
+                            <label for = "paths_filt">Paths</label> 
+                            <input type="radio" id = "paths_filt" name = "filt_radio" unchecked>
+                            <div id = "paths_filt_input" style="display: none;">
+                                <input type = "text" id = "path_filt_1" placeholder="path1">
+                                <input type = "text" id = "path_filt_2" placeholder="path2">
+                                <input type = "text" id = "path_filt_3" placeholder="path3">
+                            </div>
+                        </dt>
+                        <dt id = "change_div">
+                            <label for = "change_filt">Change</label>
+                            <input type="radio" id="change_filt" name = "filt_radio" unchecked>
+                            <div id = "change_filt_input" style="display: none;">
+                                <label for = "change_filt_operator">Operator:</label>
+                                <select id = "change_filt_operator" name = "change_filt_operator">
+                                    <option value = "gt">Greather than (false -> true)</option>
+                                    <option value = "lt">Lower than (true -> false)</option>
+                                    <option value = "ne">Not equal (both)</option>
+                                    <option value = "gte">Greather than or equal</option>
+                                    <option value = "lte">Lower than or equal</option>
+                                </select>
+                                <label for = "change_filt_difference">Difference: </label>
+                                <input type = "text" id = "change_filt_difference">
+                            </div>
+                        </dt>
+                        <dt id = "none_div">
+                            <label for = "no_filt">None</label>
+                            <input type = "radio" id = "no_filt" name = "filt_radio" checked>
+                        </dt>
+                    </dl>                    
+                </div>
+                <div class="column" style="width: 20%;">
+                    <div class="data_box_bordered">
+                        <p class="subject" id = "Token" style="margin: 5px; padding:0px; padding-bottom:2px">Access Token</p>
+                        <pre id = "TokenContent" class="data"></pre>
                     </div>
                 </div>
-                <div class="horiz_click_list">
-                    <br><button onclick="sendVissReq()" class="arrow_button"><span>Send</span></button> 
-                    <input type="checkbox" id="log_switch" checked>
-                    <span>Logs</span>
-                </div>
-                <div class="data_box" id="logs">
-                    <p class="subject">Logs<br></p> 
-                    <p id="log_data" class="data"></p>
-                    <button onclick="logReset()">Reset</button>
-                </div>  
             </div>
-            <div id = "right_col" class = "mid_col">
-                <div class="data_box_bordered">
-                    <p class="subject">Request</p> 
-                    <p id="Req" class="data"></p>
-                </div>
-                <div class="data_box_bordered">
-                    <p class="subject">Response</p>
-                    <p id = "Resp" class="data"></p>
-                </div>
-            </div>
-        </div>
+        </div> 
+        <div class="data_box" id="logs">
+            <p class="subject">Logs <button onclick="logReset()">Reset</button> </p> 
+            
+            <p id="log_data" class="data"></p>
+        </div> 
+        
+        <!---
 
+                sssssss ccccccc rrrrrrr  ii  ppppppp ttttttt sssssss 
+                ss      cc      rr   rr  ii  pp   pp   ttt   ss      
+                sssssss cc      rrrrrrr  ii  ppppppp   ttt   sssssss 
+                     ss cc      rr rr    ii  pp         tt        ss 
+                sssssss ccccccc rr  rrr  ii  pp         ttt  sssssss 
+
+        -->
         <!-- Script for style changes and logs-->
-        <script src = "scripts/js/logs.js"></script>
+        <script src = "scripts/js/logger.js"></script>
         <script src = "scripts/js/encoding.js"></script>
-        <!-- Fill purpose and Access Token select-->
+        <!-- Access Token select-->
+        
+        <!-- Dynamic inputs for data-->
         <script>
-            atFiller();
-            function atFiller(){
-                if (localStorage.AT != undefined && localStorage.AT != ""){
-                    let TokenList = JSON.parse(localStorage.AT)
-                    for(var key in TokenList){
-                        let insert = '<option value = "' + key + '">'+ key + '</option>';
-                        document.getElementById("token").insertAdjacentHTML("beforeend", insert);
-                    }
-                }
-            }
-        </script>
-        <!-- Toggle data format-->
-        <script>
-            document.getElementById("log_switch").addEventListener("input", showLogs);
+            // Shows the Access Token selected
             document.getElementById("token").addEventListener("change", showAT);
-            document.getElementById("protocol").addEventListener("change", methodFiller);
-
-            function togPrettyRaw(){
-                if (document.getElementById("raw").style.display == "none"){
-                    document.getElementById("raw").style.display = "block"
-                    document.getElementById("pretty").style.display = "none"
-                } else{
-                    document.getElementById("raw").style.display = "none"
-                    document.getElementById("pretty").style.display = "block"
-                }
-            }
             function showAT(){
                 let tokenId = document.getElementById("token").value;
                 let tokens;
@@ -140,8 +160,21 @@
                     }
                 }
             }
-            methodFiller();
-            function methodFiller(){
+            // Shows the Access Tokens avaliable
+            atFiller();
+            function atFiller(){
+                if (localStorage.AT != undefined && localStorage.AT != ""){
+                    let TokenList = JSON.parse(localStorage.AT)
+                    for(var key in TokenList){
+                        let insert = '<option value = "' + key + '">'+ key + '</option>';
+                        document.getElementById("token").insertAdjacentHTML("beforeend", insert);
+                    }
+                }
+            }
+            // Fills the method select depending on the protocol selected
+            document.getElementById("protocol").addEventListener("change", methodFiller);
+            methodFiller(); 
+            function methodFiller(){    // Fills the Methods options depending on the selection
                 let method = document.getElementById("method")
                 switch (document.getElementById("protocol").value){
                     case "HTTP":
@@ -168,10 +201,12 @@
                         method.innerHTML = ""
                         break;
                 }
+                triggerOnChange("method");
             }
 
+            // Initializes the Path using the vsspathlist.json
             var dataTree = treeInit()
-            function treeInit(){
+            function treeInit(){    
                 let xhr = new XMLHttpRequest();
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState == 4 && xhr.status == 200) {
@@ -186,70 +221,245 @@
                 xhr.send();
             }
 
+            // Adds listener for the path filler 
             let requests = document.getElementById("req_url").querySelectorAll('select');
             for (i of requests) {
-            i.addEventListener("change", function() {
-                reqUpdate(this.id); 
-            });
+                    i.addEventListener("change", function() {
+                    reqUpdate(this.id); 
+                }   );
             }
-
-            function reqUpdate(id){
-                id = id.split("req");
+            // Fills the content of the Request Path while the user selects different values
+            function reqUpdate(UpdatingId){
+                let id = UpdatingId.split("req");
                 id = parseInt(id[1], 10);
                 for (let i = id + 1; i <= 15; i++){ // Deletes all claims dependent of it
                     document.getElementById("req"+i).style.display = "none";
                     document.getElementById("req"+i).innerHTML = "";
                     document.getElementById("req"+i).value = "";
                 }
-                let nextClaims = dataTree; // Get next claims
+                
+                let nextClaims = dataTree; // Get next claims from dataTree
                 for (let i = 0; i <= id; i++){
-                    nextClaims = nextClaims[document.getElementById("req"+i).value]
+                    nextClaims = nextClaims[document.getElementById("req"+i).value];
                 }
-                seltoAdd = document.getElementById("req"+(id+1)) // Fills next one
-                if (nextClaims != "undefined"){
+
+                seltoAdd = document.getElementById("req"+(id+1)) // Fills the next select
+                if ((nextClaims != undefined) && (document.getElementById("req"+id).value != "")){ //If it exist and the value 
+                    seltoAdd.style.display = "block";
                     for (let key in nextClaims){
-                        seltoAdd.style.display = "block";
                         seltoAdd.insertAdjacentHTML("afterbegin", '<option value = "' + key + '">' + key + '</option>');
                     }
+                    seltoAdd.insertAdjacentHTML("afterbegin", '<option value = "">' + "-" + '</option>');
                 }
             }
+            
+            // Dynamic filter content
+            const filter_typ_list = document.getElementById("filters").querySelectorAll('input[type="radio"]');
+            for (i of filter_typ_list) {
+                    i.addEventListener("change", function() {
+                        for (o of filter_typ_list){
+                            if (o.checked && o.id!="no_filt"){
+                                document.getElementById(o.id + "_input").style.display = "block";
+                            } else if (o.id != "no_filt"){
+                                document.getElementById(o.id + "_input").style.display = "none";
+                            }
+                        }
+                }   );
+            }
+
+            function showId(id){
+                document.getElementById(id).style.display = "block";
+            }
+            function hideId(id){
+                document.getElementById(id).style.display = "none";
+            }
+            function checkId(id, checked){  // Checks an input, triggering the onchange event
+                document.getElementById(id).checked = checked;
+                let evnt = document.createEvent("HTMLEvents");
+                evnt.initEvent("change", false, true);
+                document.getElementById(id).dispatchEvent(evnt);
+            }
+            function triggerOnChange(id){
+                let evnt = document.createEvent("HTMLEvents");
+                evnt.initEvent("change", false, true)
+                document.getElementById(id).dispatchEvent(evnt);
+            }
+
+
+            // Used for showing the filter dinamically depending on the method selected
+            document.getElementById("method").addEventListener("change", function() {
+                hideId("update_div");
+                hideId("filter_col");
+                hideId("timebased_div");
+                hideId("change_div");
+                hideId("none_div");
+                hideId("path_div");
+                checkId("no_filt", true);
+                switch (document.getElementById("method").value) {
+                    case "Authorized Read": // Request with no filters
+                        break;
+                    case "Search Read":
+                        showId("filter_col");
+                        showId("path_div");
+                        checkId("paths_filt", true);
+                        break;
+                    /*case "History Read":
+                    case "Signal Discovery Read":
+                    case "Dynamic Metadata Read":
+                    */
+                    case "Authorized Update":
+                        showId("update_div");
+                        break;
+                    case "Authorized Subscribe" :
+                        showId("filter_col");
+                        showId("path_div");
+                        showId("timebased_div");
+                        showId("change_div");
+                        showId("none_div");
+                        break;
+                    //case "Curve Logging Subscribe":
+                    //case "Range Subscribe":
+                    case "Change Subscribe":
+                        showId("filter_col");
+                        showId("change_div");
+                        checkId("change_filt", true);
+                        break;
+                    //case "Unsubscribe":
+                    default:
+                        window.alert("Method "+ document.getElementById("method").value +" NOT avaliable");
+                }
+            })
+
         </script>
+
         <!-- Request maker-->
-        <script>            
+        <script>  
+            // Obtains both HTTP and WebSockets urls from LocalStorage
+            const httpURL = gethttpURL();
+            const wsURL = getwsURL();
+            function gethttpURL() {
+                let protocol;
+                if (urlMap.tls){
+                    protocol = "https://";
+                } else{
+                    protocol = "http://";
+                }
+                return protocol + urlMap.VissIp + ":" + urlMap.VissHttpPort;
+            }
+            function getwsURL() {
+                let protocol;
+                if (urlMap.tls){
+                    protocol = "wss://";
+                } else{
+                    protocol = "ws://";
+                }
+                return protocol +  urlMap.VissIp + ":" + urlMap.VissWsPort;
+            }  
+
+            // Initializes the connection with the server using WS 
+            var socket = initializeWebSocket()  // SOCKET can be used to send data
+            function initializeWebSocket(){
+                logStatus("Info", "Opening WebSocket Connection to "+ wsURL);
+                let socket = new WebSocket(wsURL, "VISSv2");
+                socket.onmessage = function(event){
+                    logStatus("Info", "WS Data Received from: " + event.origin + "<br>Data: " + event.data);
+                    console.log("WS RECEIVED");
+                }
+                socket.onopen = function() {
+                    logStatus("Info", "Opened WebSocket Connection to " + wsURL);
+                }
+                socket.onclose = function(event) {
+                    logStatus("Info", "WebSocket Connection closed");
+                }
+                socket.onerror = function(event){
+                    logStatus("Error", "WebSocket Connection error");
+                    console.log("WS Error: ");
+                    console.log(event);
+                }
+                return socket;
+            }
+
+            // Se lanza al pulsar el boton send, envia la request segun el protocol usado
             try {
                 function sendVissReq(){
+                    let path = generatePath();
                     switch (document.getElementById("protocol").value){
                         case "HTTP":
-                            switch (document.getElementById("method").value){
-                                case "Authorized Read":
-                                let xhttpreq = new XMLHttpRequest();
-                                xhttpreq.onreadystatechange = function(){
-                                    console.log("STATE: "+this.readyState)
-                                    if (this.readyState == 4){
-                                        if (this.status != 200){
-                                            logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText);
-                                        } else{
-                                            logStatus("Info", "HTTP Response received: "+this.responseText);
-                                            let response = this.responseText
-                                            resp = JSON.parse(response)
-                                            document.getElementById("Resp").innerHTML = JSON.stringify(resp)
-                                        }
+                            let xhttpreq = new XMLHttpRequest();
+                            xhttpreq.onreadystatechange = function(){
+                                console.log("STATE: "+this.readyState)
+                                if (this.readyState == 4){
+                                    if (this.status != 200){
+                                        logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText);
+                                    } else{
+                                        logStatus("Info", "HTTP Response received: "+this.responseText);
                                     }
                                 }
-                                path = generatePath();
-                                logStatus("Info", "Sending GET Request to " + vissHTTPURL+path)
-                                xhttpreq.open("GET", vissHTTPURL+path, true);
-                                xhttpreq.send();
                             }
+                            let httpReqUrl
+                            switch (document.getElementById("method").value){
+                                case "Authorized Read":
+                                case "Search Read":
+                                    httpReqUrl = httpURL+path+generateFilter();
+                                    logStatus("Info", "Sending GET Request:" + httpReqUrl)
+                                    xhttpreq.open("GET", httpReqUrl, true);
+                                    xhttpreq.send();
+                                    break;
+                                case "Authorized Update":
+                                    httpReqUrl = httpURL+path;
+                                    let httpReqBody = "{\"value\": \"" + document.getElementById("update_input").value + "\"}";
+                                    logStatus("Info", "Sending POST Request:" + httpReqUrl + "; Body: " + httpReqBody);
+                                    xhttpreq.open("POST", httpReqUrl, true);
+                                    xhttpreq.send(httpReqBody);
+                                    break;
+                                default:
+                                    window.alert("AGAIN, METHOD NOT SUPPORTED, WAKE UP!");
+                                    return;
+                            }
+                            break;
                         case "MQTT":
-
+                            window.alert("Protocol MQTT NOT supported");
+                            break;
                         case "WS":
+                            var params = {
+                                action: "",
+                                path: generatePath(),
+                                //"authorization": 
+                                //filter: generateFilter(),
+                                requestId: (Math.trunc(Math.random()*65536)).toString()
+                            }
+                            switch (document.getElementById("method").value){
+                                case "Authorized Read":
+                                    params.action = "get";
+                                    break;
+                                case "Search Read":
+                                    params.action = "get";
+                                    params.filter = generateFilter();
+                                    break;
+                                case "Authorized Subscribe":
+                                case "Change Subscribe":
+                                    params.action = "subscribe";
+                                    params.filter = generateFilter();
+                                    break;
+                                case "Authorized Update":
+                                    params.action = "set";
+                                    params.value = document.getElementById("update_input").value;
+                                    break;
+                                default:
+                                    window.alert("AGAIN, METHOD NOT SUPPORTED, WAKE UP!");
+                                    return;
+                            }
+                            let reqContent = JSON.stringify(params);
+                            logStatus("Info", "Sending WS Subscribe Request to " + wsURL + ": " + reqContent);
+                            socket.send(reqContent);
+                            break;
                     }
                 }
             } catch (err){
                 logStatus("Error", err.message);
             }
-
+            
+            // Obtains the path of the request using the selects in the HTML
             function generatePath(){
                 let path = "";
                 for (let i = 0; i <= 15; i++){
@@ -261,6 +471,51 @@
                 }
                 return path;
             }
+            // Returns the content of the filter
+            function generateFilter(){
+                var filtMap = {};
+                if (document.getElementById("timebased_filt").checked){
+                    filtMap.type = "timebased";
+                    let valueMap = {};
+                    valueMap.period = document.getElementById("timebased_filt_period").value;
+                    filtMap.value = valueMap;
+                }else if (document.getElementById("paths_filt").checked){
+                    filtMap.type = "paths";
+                    let valueMap = [];
+                    let valMapCont = 0;
+                    let pathInputCont = 1;
+                    while(document.getElementById("path_filt_" + pathInputCont)){
+                        if(document.getElementById("path_filt_" + pathInputCont).value != ""){
+                            valueMap[valMapCont] = document.getElementById("path_filt_" + pathInputCont).value;
+                            valMapCont++;
+                        }
+                        pathInputCont++;
+                    }
+                    filtMap.value = valueMap;
+                } else if (document.getElementById("change_filt").checked){
+                    filtMap.type = "change";
+                    let valueMap = {};
+                    valueMap["logic-op"] = document.getElementById("change_filt_operator").value;
+                    valueMap["diff"] = document.getElementById("change_filt_difference").value;
+                    filtMap.value = valueMap;
+                } else if (document.getElementById("no_filt").checked){
+                    return "";
+                }
+                let filtString = JSON.stringify(filtMap);
+                if (filtString != ""){
+                    switch (document.getElementById("protocol").value){
+                        case "HTTP":
+                            return "?filter="+filtString;
+                            break;
+                        case "WS":
+                            return filtMap;
+                            break;
+                        default:
+                            return null;
+                    }
+                }
+            }
+            
         </script>
     </body>
 </html>

@@ -67,5 +67,38 @@ function deepmerge(foo, bar) {
       }
     }
     return merged;
-  }
+}
 
+
+//Convert an ArrayBuffer into a string
+function ab2str(buf) {
+  return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+// Convert string into Array Buffer
+function str2ab(str) {
+  const buf = new ArrayBuffer(str.length);
+  const bufView = new Uint8Array(buf);
+  for (let i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
+}
+
+// Prompts the user to open file, then returns its content
+function pickReadFileAsync() {
+  return new Promise(function(resolve){
+      var elem = document.createElement('input');
+      elem.style.display = 'none';
+      elem.setAttribute('type', 'file');
+      document.body.appendChild(elem);
+      elem.onchange = function (){
+          const reader = new FileReader();
+          reader.onload = function () {
+              resolve(reader.result);
+              document.body.removeChild(elem);
+          };
+          reader.readAsBinaryString(elem.files[0]);
+      }
+      elem.click();
+  })
+}

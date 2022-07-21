@@ -15,6 +15,7 @@
 			});
 		</script>
         <script src = "scripts/js/encoding.js"></script>
+		<script src = "scripts/js/clientscripts.js"></script>
 	</head>
 	<body>
 		<script src = "scripts/js/menu.js"></script>
@@ -34,7 +35,21 @@
 			<button onclick = "showEcdsa()" class="normal_button" id = "showEcdsaButton">Show ECDSA Key</button>
 		</div>
 		<p id = "ecdsaData" class ="gen">Not avaliable</p>
-		
+		<h2>IP Settings</h2>
+		<div class = "horiz_click_list" id = "serverURLS">
+			<div class ="title">AGT IP + PORT</div>
+			<input id = "agt_ip" type = "text" value = "localhost" placeholder="AGT Server IP" style="width:20%;">
+			<input id = "agt_port" type = "text" value = "7500" placeholder="AGT Server Port" style="width:10%;">
+			<div class = "title">AT IP + PORT </div>
+			<input id = "at_ip" type = "text" value = "localhost" placeholder="AT Server IP" style="width:20%;"> 
+			<input id = "at_port" type = "text" value = "8080" placeholder="AT Server Port" style="width:10%;">
+			<div class = "title">VISS IP + HTTP PORT + WS PORT </div>
+			<input id = "viss_ip" type = "text" value = "localhost" placeholder="VISS Server IP" style= "width:20%;">
+			<input id = "viss_http_port" type = "text" value = "8888" placeholder="VISS HTTP Port" style="width:10%;"> 
+			<input id = "viss_ws_port" type = "text" value = "8080" placeholder="VISS WS Port" style="width:10%;"> <br><br>
+			<button class = "small_button" onclick="setAddress()">Set</button>
+		</div>
+
 		<script>
 			function init() {
 				if(localStorage.getItem("rsaKey")!== null){
@@ -43,6 +58,7 @@
 				if(localStorage.getItem("ecdsaKey") !== null){
 					document.getElementById("ecdsaData").textContent = "ECDSA Key Avaliable"
 				}
+				initAddress();
 			}
 			init()
 
@@ -65,7 +81,9 @@
 				} else{
 					document.getElementById("ecdsaData").textContent = localStorage.getItem("ecdsaKey") 
 				}
-			}		
+			}
+			
+
 		</script>
 	</body>
 </html>

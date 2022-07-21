@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/styles/management.css" type="text/css">
+<link rel="icon" href="/images/favicon.ico">
+<script src="/scripts/js/managerscripts.js"></script>
+<script src="/scripts/js/logger.js"></script>
+<script src="/scripts/js/encoding.js"></script>
+<script src="/scripts/js/crypto.js"></script>
+</head>
+<body>
+
+<div class="sidebar">
+  <a class="active" href="/management">Management</a>
+  <a href="/management/agts.html">AGT Server</a>
+  <a href="/management/ats.html">AT Server</a>
+  <a href="/management/viss.html">VISSv2 Server</a>
+</div>
+
+<div class="content">
+  <h2>VISS Manager </h2>
+  <p></p>
+  <h3>Key generation</h3>
+  <div id = "KeyStatus"></div>
+  <div id = "KeyActions">
+    <button class="mgrbutton" style="width: 25%;" onclick="generateKey(`RSA`)">Generate RSA-256 Key Pair</button>
+    <!-- <button class="mgrbutton" style="width: 15%;" onclick="importKey(`RSA`)">Import RSA</button> !-->
+    <button class="mgrbutton" style="width: 15%;" onclick="exportPublicKey(`RSA`)" >Export public key</button>
+    <br>
+    <button class="mgrbutton" style="width: 25%;" onclick="generateKey(`ECDSA`)">Generate ECDSA P-256 Key Pair</button>
+    <!-- <button class="mgrbutton" style="width: 15%;" onclick="importKey(`ECDSA`)">Import ECDSA</button> !-->
+    <button class="mgrbutton" style="width: 15%;" onclick="exportPublicKey(`ECDSA`)">Export public key</button>
+    <div style="font-size: small; color: darkgrey; margin-left: 20px;"> Supported keys:  RSASSA-PKCS1-v1_5 256 bits, ECDSA using P-256 curve. Export/import format: PCKS8</div>
+  </div>
+  <h3>Internal Working</h3>
+  <p>
+    Request will be inside a Json Web Token signed by the Ecosystem Manager.
+    Right now, thrat request will be sent in plain text for an easier debugging.
+    <br>Each server holds a file "server_name_config.json" including parameters relating the token generation and checking.
+    <br>The request will follow this structure:
+  </p>
+  <p>
+    "PARAMETER_TYPE.URL_TO_DATA.ACTION" = "VALUE"
+  </p>
+  <p>The "DATA URL" represents the route followed to the data to be changed or consulted.
+    <br>In case the Data to be changed is a set of data (ex. thumbprint list) 
+  </p>
+  <h4>Examples</h4>
+    Changing the expiration time of the proof of possession received:<br>
+    <div class = "code">“Policies.PoP_Policies.time_exp.SET” = “5s”</div><br>
+    Adding some client keys to the black list:<br>
+    <div class = "code">“Policies.PoP_Policies.banned_thumbprints.ADD” = “thumbprint1+thumbprint2”</div><br>
+    Deleting a VIN from the ecosystem:<br>
+    <div class = "code">“Policies.AGT.vehicles.DELETE” = “vin1”</div>
+  <h4>
+    Setting the URL and port of the different servers:
+  </h4>
+  <div id = "url_inputs">
+    AGT URL + PORT <br>
+    <input id = "agt_url" type = "text" value = "localhost" placeholder="AGT Server URL" style="min-width:20%;">
+    <input id = "agt_port" type = "text" value = "7500" placeholder="AGT Server Port" style="min-width:5%;"><br><br>
+    AT URL + PORT <br>
+    <input id = "at_url" type = "text" value = "localhost" placeholder="AT Server URL" style="min-width:20%;"> 
+    <input id = "at_port" type = "text" value = "8080" placeholder="AT Server Port" style="min-width:5%;"><br><br>
+    VISS URL + PORT <br>
+    <input id = "viss_url" type = "text" value = "localhost" placeholder="VISS Server URL" style= "min-width:20%;">
+    <input id = "viss_port" type = "text" value = "8888" placeholder="VISS Server Port" style="min-width:5%;"><br>
+    <button class = "mgrbutton" style="margin-left: 2px;" onclick="setAddress()">Set</button>
+  </div>
+
+  
+
+</div>
+
+</body>
+
+<script>
+
+</script>
+
+</html>

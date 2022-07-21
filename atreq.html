@@ -19,6 +19,7 @@
 		</script>
         <script src = "scripts/js/encoding.js"></script>
         <script src = "serverURLS.js"></script>
+        <script src = "scripts/js/clientscripts.js"></script>
 	</head>
 	<body>
         <script src = "scripts/js/menu.js"></script>
@@ -126,7 +127,7 @@
         
 
         <!-- Script for style changes and logs-->
-        <script src = "scripts/js/logs.js"></script>
+        <script src = "scripts/js/logger.js"></script>
         <script src = "scripts/js/encoding.js"></script>
         <!-- Fill purpose and AGtoken select-->
         <script>
@@ -267,12 +268,11 @@
                         console.log("PROBLEM")
                     }
                 }
-                console.log(req)
                 // Pop generation
                 let signTyp = document.getElementById("sign_type").value;
-                let pop = ""
+                let pop = "";
                 if (signTyp == "Auto"){
-                    signTyp = tokenTyp
+                    signTyp = tokenTyp;
                 }
                 
                 if (((signTyp == "RS256")&&(localStorage.rsaKey != null )) || 
@@ -344,7 +344,6 @@
                     xhttpreq.open("POST", atURL, true);
                     //xhttpreq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
                     let req = genAtReq();
-                    console.log(req);
                     logStatus("Info", "Request Body Generated")
                     Req.textContent = req;
                     document.getElementById("ReqPretty").innerHTML = jsonPrettify(req)

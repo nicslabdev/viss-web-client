@@ -5,7 +5,7 @@
 # Author: Jose Jesus Sanchez Gomez, sanchezg@lcc.uma.es
 #
 
-SCREEN_NAME="VISSWebServer"
+SCREEN_NAME="VISSWebClient"
 
 function usage {
     echo "usage: $0 -run:  Initializes and run the webserver"

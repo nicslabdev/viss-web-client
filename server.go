@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	port = flag.String("port", ":8080", "listen address")
+	port = flag.String("port", ":8008", "listen address")
 	sec  = flag.String("sec", "no", "use TLS in HTTP or not")
 )
 
