@@ -10,7 +10,7 @@ function logStatus(typ, data, logplace) {
     let current = new Date();
     var date = timeConv(current.getDate())+"/"+timeConv((1 + current.getMonth()))+"/"+current.getFullYear()
     +", "+timeConv(current.getHours())+":"+timeConv(current.getMinutes())+":"+timeConv(current.getSeconds());
-    let logdata = date + " " + typ + ": " + data
+    let logdata = "<i>" + date + "</i><b>" + " " + typ + "</b>: " + data
     switch (logplace){
         case "console":
             console.log(logdata);
