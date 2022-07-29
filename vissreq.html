@@ -20,7 +20,6 @@
         <script src = "scripts/js/encoding.js"></script>
         <script src = "serverURLS.js"></script>
         <script src = "scripts/js/clientscripts.js"></script>
-        <script src = "scripts/js/logger.js"></script>
 	</head>
 	<body>
         <script src = "scripts/js/menu.js"></script>
@@ -42,11 +41,11 @@
                     <label for = "method">Method</label>
                     <br><select id = "method" name = "method"></select>
                     <div style="font-size: 10px;"> Note: Only HTTP Read and WS Subscribe Supported at the moment </div>
-                    <br><button onclick="sendVissReq()" class="arrow_button"><span>Send</span></button> 
-                    <!-- <label class = "container">Logs
-                        <input type="checkbox" id="log_switch" checked>
-                        <span class="checkmark"></span>
-                    </label> -->
+                    <br>
+                    <input type="checkbox" id="log_switch" checked> <span>Logs</span>
+                    <input type="checkbox" id="at_switch" checked> <span>AT</span>
+                    <br>
+                    <button onclick="sendVissReq()" class="arrow_button"><span>Send</span></button>  
                 </div>
                 <div class="column" id = "url_col" style="width: 15%;">
                     <div id = "req_url">
@@ -75,6 +74,11 @@
                         <input type = "text" id = "update_input">
                     </div>           
                 </div>
+                <div class="column" id = "subs_id_col" style="width: 15%; display: none;">
+                    <label for = "sub_id">Subscription ID</label>
+                    <input type = "text" id = "sub_id">
+                </div>
+                
                 <div class = "column" id = "filter_col" style="width: 15%; display: none;">
                     <label for = "filters">Filters</label>
                     <dl id = "filters">
@@ -117,19 +121,27 @@
                         </dt>
                     </dl>                    
                 </div>
-                <div class="column" style="width: 20%;">
+                <div class="column" id="at_col" style="width: 20%;">
                     <div class="data_box_bordered">
                         <p class="subject" id = "Token" style="margin: 5px; padding:0px; padding-bottom:2px">Access Token</p>
                         <pre id = "TokenContent" class="data"></pre>
                     </div>
                 </div>
+                <div class="column" style = "width: 50%">
+                    <div class="data_box_bordered" id="logs">
+                        <p class="subject">Logs 
+                            <button onclick="logReset()">Reset</button> 
+                        </p> 
+                        <p id="log_data" class="data" style="display: block; overflow-y: scroll; height: 200px;"></p>
+                    </div> 
+                </div>
             </div>
         </div> 
-        <div class="data_box" id="logs">
-            <p class="subject">Logs <button onclick="logReset()">Reset</button> </p> 
-            
-            <p id="log_data" class="data"></p>
-        </div> 
+        <div class = "message_list" id = "message_list">
+            <p class = "subject">Response List</p>
+            <div class = "messages" id = "messages"></div>
+        </div>
+        
         
         <!---
 
@@ -160,6 +172,13 @@
                     }
                 }
             }
+            document.getElementById("at_switch").addEventListener("input", function() {
+                if (document.getElementById("at_switch").checked){
+                    document.getElementById("at_col").style.display = "block";
+                } else {
+                    document.getElementById("at_col").style.display = "none";
+                }
+            });
             // Shows the Access Tokens avaliable
             atFiller();
             function atFiller(){
@@ -286,19 +305,23 @@
             }
 
 
-            // Used for showing the filter dinamically depending on the method selected
+            // Used for showing request claims to fill after selecting the method
             document.getElementById("method").addEventListener("change", function() {
+                hideId("url_col");
                 hideId("update_div");
                 hideId("filter_col");
                 hideId("timebased_div");
                 hideId("change_div");
                 hideId("none_div");
                 hideId("path_div");
+                hideId("subs_id_col");
                 checkId("no_filt", true);
                 switch (document.getElementById("method").value) {
                     case "Authorized Read": // Request with no filters
+                        showId("url_col");
                         break;
                     case "Search Read":
+                        showId("url_col");
                         showId("filter_col");
                         showId("path_div");
                         checkId("paths_filt", true);
@@ -309,22 +332,27 @@
                     */
                     case "Authorized Update":
                         showId("update_div");
+                        showId("url_col");
                         break;
                     case "Authorized Subscribe" :
                         showId("filter_col");
-                        showId("path_div");
+                        //showId("path_div");
                         showId("timebased_div");
                         showId("change_div");
                         showId("none_div");
+                        showId("url_col");
                         break;
                     //case "Curve Logging Subscribe":
                     //case "Range Subscribe":
                     case "Change Subscribe":
                         showId("filter_col");
+                        showId("url_col");
                         showId("change_div");
                         checkId("change_filt", true);
                         break;
-                    //case "Unsubscribe":
+                    case "Unsubscribe":
+                        showId("subs_id_col");
+                        break;
                     default:
                         window.alert("Method "+ document.getElementById("method").value +" NOT avaliable");
                 }
@@ -362,8 +390,8 @@
                 logStatus("Info", "Opening WebSocket Connection to "+ wsURL);
                 let socket = new WebSocket(wsURL, "VISSv2");
                 socket.onmessage = function(event){
-                    logStatus("Info", "WS Data Received from: " + event.origin + "<br>Data: " + event.data);
-                    console.log("WS RECEIVED");
+                    logStatus("Info", "WS Data Received from: " + event.origin + " Data: " + event.data);
+                    prettyResponseWriter(event.data, "WebSockets");
                 }
                 socket.onopen = function() {
                     logStatus("Info", "Opened WebSocket Connection to " + wsURL);
@@ -384,25 +412,37 @@
                 function sendVissReq(){
                     let path = generatePath();
                     switch (document.getElementById("protocol").value){
+                    // HTTP REQUESTS
                         case "HTTP":
                             let xhttpreq = new XMLHttpRequest();
                             xhttpreq.onreadystatechange = function(){
-                                console.log("STATE: "+this.readyState)
                                 if (this.readyState == 4){
                                     if (this.status != 200){
                                         logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText);
                                     } else{
                                         logStatus("Info", "HTTP Response received: "+this.responseText);
+                                        prettyResponseWriter(this.responseText, "HTTP");
                                     }
                                 }
+                            }
+                            let toPretty = {    // To pretty write the request
+                                action: ""
                             }
                             let httpReqUrl
                             switch (document.getElementById("method").value){
                                 case "Authorized Read":
                                 case "Search Read":
-                                    httpReqUrl = httpURL+path+generateFilter();
+                                    filter = generateFilter();
+                                    httpReqUrl = httpURL+path+filter;
                                     logStatus("Info", "Sending GET Request:" + httpReqUrl)
                                     xhttpreq.open("GET", httpReqUrl, true);
+                                    toPretty.action = "get";
+                                    if (filter != ""){
+                                        let filt = filter.replace("?filter=", "");
+                                        toPretty.filter = JSON.parse(filt);
+                                    }
+                                    toPretty.path = path;
+                                    prettyRequestWriter(toPretty, "HTTP");
                                     xhttpreq.send();
                                     break;
                                 case "Authorized Update":
@@ -410,6 +450,10 @@
                                     let httpReqBody = "{\"value\": \"" + document.getElementById("update_input").value + "\"}";
                                     logStatus("Info", "Sending POST Request:" + httpReqUrl + "; Body: " + httpReqBody);
                                     xhttpreq.open("POST", httpReqUrl, true);
+                                    toPretty.action = "post";
+                                    toPretty.path = path;
+                                    toPretty.value = document.getElementById("update_input").value;
+                                    prettyRequestWriter(toPretty, "HTTP");
                                     xhttpreq.send(httpReqBody);
                                     break;
                                 default:
@@ -420,6 +464,7 @@
                         case "MQTT":
                             window.alert("Protocol MQTT NOT supported");
                             break;
+                    // WebSockets Requests
                         case "WS":
                             var params = {
                                 action: "",
@@ -445,12 +490,18 @@
                                     params.action = "set";
                                     params.value = document.getElementById("update_input").value;
                                     break;
+                                case "Unsubscribe":
+                                    delete params.path;
+                                    params.action = "unsubscribe";
+                                    params.subscriptionId = document.getElementById("sub_id").value;
+                                    break;
                                 default:
                                     window.alert("AGAIN, METHOD NOT SUPPORTED, WAKE UP!");
                                     return;
                             }
                             let reqContent = JSON.stringify(params);
                             logStatus("Info", "Sending WS Subscribe Request to " + wsURL + ": " + reqContent);
+                            prettyRequestWriter(params, "WebSockets");
                             socket.send(reqContent);
                             break;
                     }
@@ -458,7 +509,169 @@
             } catch (err){
                 logStatus("Error", err.message);
             }
-            
+
+            // Shows the pretty request
+            function prettyRequestWriter(request, protocol){
+                var toWrite;
+                switch (protocol){
+                    case "HTTP":
+                        toWrite = generateReqTableHead(protocol, request.action.toUpperCase(), new Date().toISOString())
+                        break;
+                    case "WebSockets":
+                        toWrite = generateReqTableHead(protocol, request.action.toUpperCase() + " ID: " + request.requestId, new Date().toISOString())
+                        break;
+                }
+                switch (request.action){
+                    case "get":
+                    case "subscribe":
+                        console.log(request)
+                        if (request.filter != undefined && request.filter.value.length != undefined){
+                            toWrite += generateTableRow(request.path, "Filter: " + request.filter.type + ": "  + JSON.stringify(request.filter.value[0]), "")
+                            for (let cont = 1; cont < request.filter.value.length; cont++){
+                                toWrite += generateTableRow("", "Filter: " + request.filter.type + ": " + JSON.stringify(request.filter.value[cont]), "")
+                            }
+                        } else if (request.filter != undefined ){
+                            toWrite += generateTableRow(request.path, " Filter: " + request.filter.type + ": " + JSON.stringify(request.filter.value), "")
+                        } else{
+                            toWrite += generateTableRow(request.path, "", "")
+                        }
+                        break;
+                    case "set":
+                    case "post":
+                        toWrite += generateTableRow(request.path, request.value, "")
+                        break;
+                    case "unsubscribe":
+                        toWrite += generateTableRow("Unsubscribe from subscription ID " + request.subscriptionId,"", "")
+                        break;
+                }
+                document.getElementById("messages").insertAdjacentHTML("afterbegin",toWrite+"</table>\n");
+                
+            }
+
+            // Shows the pretty response, need to obtain response in string and protocol used to request
+            function prettyResponseWriter(response, respProto){
+                objResp = JSON.parse(response);
+                var toWrite;
+                switch (respProto){
+                    case "HTTP":
+                        if (objResp.error != null){ // Error response
+                            toWrite = generateRespTableHead(respProto, "Error response", objResp.ts);
+                            toWrite += generateTableRow("Error", objResp.error.message + "  " + objResp.error.reason, "");
+                        } else if (objResp.data != null){   // Ok response
+                            toWrite = generateRespTableHead(respProto, "GET OK", objResp.ts);
+                            if (objResp.data.length == undefined){  // It is only one data, no need to iterate
+                                toWrite += generateTableRow(objResp.data.path, objResp.data.dp.value, objResp.data.dp.ts);
+                            } else {
+                                for (let con = 0; con < objResp.data.length; con++){
+                                    toWrite += generateTableRow(objResp.data[con].path, objResp.data[con].dp.value, objResp.data[con].dp.ts);
+                                }
+                            }
+                        } else{ // OK update response
+                            toWrite = generateRespTableHead(respProto, "UPDATE OK", objResp.ts);
+                            toWrite += generateTableRow("Update Request Successful","", "");
+                        }
+                    break;
+                    case "WebSockets":
+                        if (objResp.error != null){ // Error response
+                            let reqInfo;
+                            if (objResp.requestId != undefined){
+                                reqInfo = "RequestID: " + objResp.requestId;
+                                if (objResp.subscriptionId != undefined){
+                                    reqInfo += ", SubscriptionID: " + objResp.subscriptionId;
+                                }
+                            } else {
+                                reqInfo = "SubscriptionID: " + objResp.suscriptionId;
+                            }
+                            toWrite = generateRespTableHead(respProto, objResp.action.toUpperCase() + "  " + reqInfo, objResp.ts);
+                            toWrite += generateTableRow("Error "+objResp.error.number, objResp.error.message + " " + objResp.error.reason, "");
+                        } else{ // Ok messages
+                            switch(objResp.action){
+                                case "get":
+                                    toWrite = generateRespTableHead(respProto, objResp.action.toUpperCase() + ", ID " + objResp.requestId, objResp.ts);
+                                    if (objResp.data.length == undefined){  // It is only one data, no need to iterate
+                                        toWrite += generateTableRow(objResp.data.path, objResp.data.dp.value, objResp.data.dp.ts);
+                                    } else {
+                                        for (let con = 0; con < objResp.data.length; con++){
+                                            toWrite += generateTableRow(objResp.data[con].path, objResp.data[con].dp.value, objResp.data[con].dp.ts);
+                                        }
+                                    }
+                                    break;
+                                case "subscribe":   // Subscription ok
+                                    toWrite = generateRespTableHead(respProto, objResp.action.toUpperCase() + ", Request ID: " + objResp.requestId, objResp.ts);
+                                    toWrite += generateTableRow("Subscription Request Accepted", "Subscription ID: " + objResp.subscriptionId, "")
+                                    break;
+                                case "subscription":
+                                    toWrite = generateRespTableHead(respProto, objResp.action.toUpperCase() + " ID: " + objResp.subscriptionId, objResp.ts);
+                                    if (objResp.data.length == undefined){  // It is only one data, no need to iterate
+                                        toWrite += generateTableRow(objResp.data.path, objResp.data.dp.value, objResp.data.dp.ts);
+                                    } else {
+                                        for (let con = 0; con < objResp.data.length; con++){
+                                            toWrite += generateTableRow(objResp.data[con].path, objResp.data[con].dp.value, objResp.data[con].dp.ts);
+                                        }
+                                    }
+                                    break;
+                                case "set":
+                                    toWrite = generateRespTableHead(respProto, objResp.action.toUpperCase() + ", ID " + objResp.requestId, objResp.ts);
+                                    toWrite += generateTableRow("Update Request Successful","", "");
+                                    break;
+                                case "unsubscribe":
+                                    toWrite = generateRespTableHead(respProto, objResp.action.toUpperCase() + ", RequestID: " + objResp.requestId, objResp.ts);
+                                    toWrite += generateTableRow("Unsubscribe Request Successful", "Unsubscribed from ID: " + objResp.subscriptionId, "");
+                                    break;
+                                default:
+                                    logStatus("Info", "Invalid response received from WebSockets");
+                            }
+                        }
+                    break;
+                }
+                document.getElementById("messages").insertAdjacentHTML("afterbegin",toWrite+"</table>\n");
+            }
+
+
+            // generates Header of the response table  
+            function generateRespTableHead(respProto, respTyp, respTs){
+                return "<table class = \"rcv_table\" width = \"70%\" id = \"" +  + "\">\n"        // Usable to delete the response selected
+                +"	<colgroup>\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\">\n"
+                +"	</colgroup>\n"
+                +"<tr>\n"
+                +"	    <th colspan=8>" + respProto + "</td>\n"
+                +"	    <th colspan=6>" + respTyp + "</td>\n"
+                +"	    <th class = \"response_ts\" colspan=6 >" + respTs + "</td>\n"
+                +"	</tr>\n";
+            }
+            // generates Header of request table 
+            function generateReqTableHead(reqProto, reqTyp, reqTs){
+                return "<table class = \"snd_table\" width = \"70%\" id = \"" +  + "\">\n"        // Usable to delete the response selected
+                +"	<colgroup>\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\"><col width=\"5%\">\n"
+                +"	    <col width=\"5%\"><col width=\"5%\">\n"
+                +"	</colgroup>\n"
+                +"<tr>\n"
+                +"	    <th colspan=8>" + reqProto + "</td>\n"
+                +"	    <th colspan=6>" + reqTyp + "</td>\n"
+                +"	    <th class = \"request_ts\" colspan=6 >" + reqTs + "</td>\n"
+                +"	</tr>\n";
+            }
+            // generates a row of data 
+            function generateTableRow(titl, val, tims){
+                return "	<tr>\n"
+                +"	    <td class = \"response_typ\" colspan = 8>" + titl + "</td>\n"
+                +"	    <td class = \"response_msg\" colspan = 8>" + val + "</td>\n"
+                +"	    <td class = \"response_data_ts\" colspan = 4>" + tims + "</td> \n"
+                +"	</tr> \n";
+            }
             // Obtains the path of the request using the selects in the HTML
             function generatePath(){
                 let path = "";
@@ -515,7 +728,9 @@
                     }
                 }
             }
+        
             
         </script>
+        <script src = "scripts/js/logger.js"></script>
     </body>
 </html>

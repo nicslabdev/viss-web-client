@@ -274,3 +274,109 @@
   }
 
 /* End gen input*/
+
+/* Response list */
+  .message_list{
+    margin-left: 30px;
+  }
+
+  .message_list .subject{
+    color: rgb(0, 87, 145);
+    font-size: 18px;
+  }
+
+  .message_list table{
+    overflow: auto;
+    border-width: thick;
+    border-collapse: separate;
+    border-spacing: 0px 0px;
+    margin-bottom: 15px;
+  }
+
+  .message_list .rcv_table{
+    border: 1px solid dodgerblue;
+  }
+
+  .message_list .snd_table{
+    border: 1px solid green;
+  }
+
+
+  .message_list table tr{
+    text-align: left;
+    margin-top: 2px;
+    background-color: white;
+  }
+
+  .message_list table th{
+    text-align: left;
+    font-weight: normal;
+    padding: 10px 10px;
+    color: white;
+  }
+
+  .message_list .rcv_table th{
+    background-color: dodgerblue;
+  }
+
+  .message_list .snd_table th{
+    background-color: green;
+  }
+
+  .message_list table td{
+    font-weight: normal;
+    padding: 5px 10px;
+  }
+  
+  .message_list .response_typ{
+    text-align: left;
+  }
+
+  .message_list .response_ts{
+    text-align: right;
+  }
+
+  .message_list .request_ts{
+    text-align: right;
+  }
+
+  .message_list .response_data_ts{
+    text-align: right;
+    font-size: small;
+    color: darkslategrey;
+  }
+
+  .message_list .response_typ{
+    text-align: left;
+  }
+
+  .message_list .response_butt{/*(⌐■_■)*/
+    text-align: right;
+  }
+/* End data box */
+
+/* Bordered Data Box */
+.data_box_bordered{
+  margin-left: 30px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ccc;
+  border-radius: 5px;
+}
+
+.data_box_bordered .subject{
+  color: rgb(0, 87, 145);
+  font-size: 18px;
+  padding-left: 10px;
+  padding-bottom: 10px;
+  border-color: #ccc;
+  border-bottom-style: solid;
+  border-width: 1px;
+}
+
+.data_box_bordered .data{
+  padding-left: 7px;
+  overflow: auto;
+}
+/* End bordered data box */
+/* End response list */

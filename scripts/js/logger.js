@@ -31,6 +31,7 @@ function logStatus(typ, data, logplace) {
 function logReset() {
     document.getElementById("log_data").innerHTML = "";
 }
+document.getElementById("log_switch").addEventListener("input", showLogs);
 function showLogs() {
     if (document.getElementById("log_switch").checked){
         document.getElementById("logs").style.display = "block";

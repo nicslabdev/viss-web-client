@@ -29,16 +29,19 @@ var (
 	sec  = flag.String("sec", "no", "use TLS in HTTP or not")
 )
 
+// HTTP Server
 func runHTTP() {
 	log.Printf("HTTP server listening on %s...", *port)
 	log.Fatal(http.ListenAndServe(*port, http.FileServer(http.Dir("."))))
 }
 
+// HTTPS Server
 func runHTTPS() {
 	log.Printf("HTTPS server listening on %s...", *port)
 	log.Fatal(http.ListenAndServeTLS(*port, "", "", nil))
 }
 
+// Checks if file name starts in ".", if it does, nothing is served (protection vs certificate stealing)
 func containsDotFile(name string) bool {
 	parts := strings.Split(name, "/")
 	for _, part := range parts {
@@ -78,6 +81,8 @@ func (fsys dotFileHidingFileSystem) Open(name string) (http.File, error) {
 	}
 	return dotFileHidingFile{file}, err
 }
+
+// Logs the requests
 
 func main() {
 	flag.Parse()
