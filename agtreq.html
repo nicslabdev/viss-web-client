@@ -9,6 +9,8 @@
         <link rel="stylesheet" href="styles/menu.css" type="text/css">
 		<link rel="stylesheet" href="styles/general.css" type="text/css">
 		<script src="wasm_exec.js"></script>
+        <!-- <script src="scripts/js/crypto.js"></script> -->
+        <script src="scripts/js/logger.js"></script>
 		<script> //type="module"
 			//import axios from 'axios': USED TO FETCH WHEN NOT USING WEB SERVER
 			const go = new Go();
@@ -180,9 +182,11 @@
                 req = jsonRecursiveEncoding("context",document.getElementById("user_role").value + "+"
                 + document.getElementById("app_role").value + "+" + document.getElementById("dev_role").value, req);
                 req = jsonRecursiveEncoding("proof", document.getElementById("proof").value, req);
+                req = jsonRecursiveEncoding("key", getPublicThumbprint(document.getElementById("sign_typ")) , req)
                 return req;
             }
-            
+            //Generates the URL for the AGT
+            const AgtUrl = (urlMap.tls ? "https://": "http://") + urlMap.AgtIp + ":" + urlMap.AgtPort + "/agts"; 
             try {
                 function sendAgtReq(){
                     RespTypPretty.innerHTML = "Response";
@@ -234,7 +238,7 @@
                         }
                     }
 
-                    xhttpreq.open("POST", agtURL, true);
+                    xhttpreq.open("POST", AgtUrl, true);
                     //xhttpreq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
                     let req = genAgtReq();
                     logStatus("Info", "Request Body Generated")

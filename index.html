@@ -8,12 +8,14 @@
 		<link rel="stylesheet" href="styles/menu.css" type="text/css">
 		<link rel="stylesheet" href="styles/general.css" type="text/css">
 		<script src="wasm_exec.js"></script>
+		<!-- <script src = "scripts/js/crypto.js"></script> -->
 		<script> 
 			const go = new Go();
 			WebAssembly.instantiateStreaming(fetch("scripts/go/golib.wasm"), go.importObject).then((result) => {
 				go.run(result.instance);
 			});
 		</script>
+		<script src = "scripts/js/logger.js"></script>
         <script src = "scripts/js/encoding.js"></script>
 		<script src = "scripts/js/clientscripts.js"></script>
 	</head>

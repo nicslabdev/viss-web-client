@@ -11,7 +11,7 @@ function setAddress(){
         VissIp: document.getElementById("viss_ip").value,
         VissHttpPort: document.getElementById("viss_http_port").value,
         VissWsPort: document.getElementById("viss_ws_port").value,
-        protocol: location.protocol == "https:"
+        tls: location.protocol == "https:"
     }
     var JsonUrls = JSON.stringify(urlMap);
     window.localStorage.setItem("server_urls", JsonUrls);
@@ -20,9 +20,8 @@ function setAddress(){
 // Initializes the stored addresses of the servers
 function initAddress() {
     urlString = window.localStorage.getItem("server_urls");
-    if (urlString != null){
+    if (urlString != null){ // If the urls has been initialized already
         urlMap = JSON.parse(window.localStorage.getItem("server_urls"));
-
         if (document.getElementById("agt_port") != null){ // Shows the urls, only in index
             document.getElementById("agt_port").value = urlMap.AgtPort;
             document.getElementById("agt_ip").value = urlMap.AgtIp;
@@ -32,6 +31,7 @@ function initAddress() {
             document.getElementById("viss_http_port").value = urlMap.VissHttpPort;
             document.getElementById("viss_ws_port").value = urlMap.VissWsPort; 
         }
+        urlMap = JSON.parse(urlString);
     } else {
         setAddress();
     } 

@@ -10,20 +10,21 @@ function logStatus(typ, data, logplace) {
     let current = new Date();
     var date = timeConv(current.getDate())+"/"+timeConv((1 + current.getMonth()))+"/"+current.getFullYear()
     +", "+timeConv(current.getHours())+":"+timeConv(current.getMinutes())+":"+timeConv(current.getSeconds());
+    let consoledata = typ + ": " + date + ", " + data
     let logdata = "<i>" + date + "</i><b>" + " " + typ + "</b>: " + data
     switch (logplace){
         case "console":
-            console.log(logdata);
+            console.log(consoledata);
             break;
         case "duo":
-            console.log(logdata)
+            console.log(consoledata)
             document.getElementById("log_data").insertAdjacentHTML("afterbegin", logdata + "<br>\n");
             //document.getElementById("log_data").innerHTML += logdata + "<br>";
             break;
         default:
             //document.getElementById("log_data").innerHTML += logdata + "<br>";
             document.getElementById("log_data").insertAdjacentHTML("afterbegin", logdata + "<br>\n");
-            console.log 
+            //console.log 
             break; 
     }
 }
@@ -31,7 +32,9 @@ function logStatus(typ, data, logplace) {
 function logReset() {
     document.getElementById("log_data").innerHTML = "";
 }
-document.getElementById("log_switch").addEventListener("input", showLogs);
+if (document.getElementById("log_switch") != null){
+    document.getElementById("log_switch").addEventListener("input", showLogs);
+}
 function showLogs() {
     if (document.getElementById("log_switch").checked){
         document.getElementById("logs").style.display = "block";

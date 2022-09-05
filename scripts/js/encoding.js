@@ -102,3 +102,12 @@ function pickReadFileAsync() {
       elem.click();
   })
 }
+
+// Base 64 URL Safe encoding
+function strEncodeBase64URLSafe(toencode){
+  let notsafe = btoa(toencode);
+  let safe = notsafe.replaceAll("=", "");
+  safe = safe.replaceAll("+", "-");
+  safe = safe.replaceAll("/", "_");
+  return safe;
+}
