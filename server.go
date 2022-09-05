@@ -41,7 +41,7 @@ func runHTTP() {
 // HTTPS Server
 func runHTTPS() {
 	log.Printf("HTTPS server listening on %s...", *port)
-	log.Fatal(http.ListenAndServeTLS(*port, ".tls/cert.pem", ".tls/serv_key.key", nil))
+	log.Fatal(http.ListenAndServeTLS(*port, ".tls/cert.pem", ".tls/serv_key.key", servMux))
 }
 
 // Logs the requests
