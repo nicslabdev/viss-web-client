@@ -1,4 +1,4 @@
-# VISS - MANAGER
+# VISS - WEB CLIENT
 Web client developed for @nicslabdev by @josesnchz acting as frontend of nicslabdev/automotive-viss2. Repository that implements authorization, authentification and other security concepts to w3c/automotive-viss2.
 This repository consists on an HTML Web application using javascript and golang that can be used to make AGT, AT and Data Requests.
 The future configuration API for AGT and AT (still on implementation phase) will also be here.
