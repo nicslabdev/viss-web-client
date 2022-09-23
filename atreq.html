@@ -8,21 +8,14 @@
 		<link rel="icon" href="images/favicon.ico">
         <link rel="stylesheet" href="styles/menu.css" type="text/css">
 		<link rel="stylesheet" href="styles/general.css" type="text/css">
-		<script src="wasm_exec.js"></script>
-		<script> //type="module"
-			//import axios from 'axios': USED TO FETCH WHEN NOT USING WEB SERVER
-			const go = new Go();
-			//WebAssembly.instantiateStreaming(axios.get("scripts/go/golib.wasm"), go.importObject).then((result) => {
-			WebAssembly.instantiateStreaming(fetch("scripts/go/golib.wasm"), go.importObject).then((result) => {
-				go.run(result.instance);
-			});
-		</script>
-        <script src = "scripts/js/encoding.js"></script>
-        <script src = "serverURLS.js"></script>
-        <script src = "scripts/js/clientscripts.js"></script>
+        <script src = "scripts/js/logger.js"></script>          <!---Logs for debug and user info-->
+        <script src = "scripts/js/encoding.js"></script>        <!---Encoding support-->
+        <script src = "scripts/js/clientscripts.js"></script>   <!---Server URLS management-->
+        <script src = "scripts/js/clientcrypto.js"></script>    <!---CryptoKeys Storage and POP and signature support-->
+        <script src = "scripts/js/tokenhandler.js"></script>    <!---Token Storage and Purpose Management-->
 	</head>
 	<body>
-        <script src = "scripts/js/menu.js"></script>
+        <script src = "scripts/js/menu.js"></script>    <!--- Top menu-->
 		<h2>Access Token Client</h2><br>
 
         <div class = "mid_div">
@@ -33,7 +26,7 @@
                         <div class = "column">
                             <label for="pur">Purpose</label>
                             <br><select id = "pur" name = "pur"></select>
-                            <label for = "tkn">AG Token</label>
+                            <label for = "tkn">AGToken (Sign + ID)</label>
                             <br><select id = "tkn" name = "tkn">
                                 <option value = "None">None</option>
                             </select>
@@ -59,7 +52,7 @@
                         </div>
                         <div class="column" style="width: 50%;">
                             <div class="data_box_bordered">
-                                <p class="subject" id = "AgToken" style="margin: 5px; padding:0px; padding-bottom:2px">AG Token</p>
+                                <p class="subject" id = "AgToken" style="margin: 5px; padding:0px; padding-bottom:2px ">Access Grant Token</p>
                                 <pre id = "AgTokenContent" class="data"></pre>
                             </div>
                         </div>  
@@ -129,67 +122,65 @@
         <!-- Script for style changes and logs-->
         <script src = "scripts/js/logger.js"></script>
         <script src = "scripts/js/encoding.js"></script>
-        <!-- Fill purpose and AGtoken select-->
+        
+        <!-- Fills purpose and AGtoken selects-->
         <script>
+        // Iterates var purposelist from tokenhandler.js and fills the select containing all the purposes avaliable
             purposeFiller();
             function purposeFiller(){
-                let jsonPurposes;
-                let xhr = new XMLHttpRequest();
-                let sel = document.getElementById("pur");
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        jsonPurposes = JSON.parse(xhr.responseText);
-                        for (let i = 0; i < jsonPurposes.purposes.length; i++){
-                            sel.insertAdjacentHTML("beforeend", '<option value="'+jsonPurposes.purposes[i].short+'">'+jsonPurposes.purposes[i].short + '</option>')
-                        }
-                    }
+                if (purposeList == undefined){ // If purposeList isnt already filled, retry after 100ms
+                    setTimeout(purposeFiller, 100);
+                } else {    
+                    purposeList.forEach(purpose => {
+                        document.getElementById("pur").insertAdjacentHTML("beforeend", 
+                            '<option value="'+purpose.short+'">'+purpose.short + '</option>');
+                    }); 
                 }
-                xhr.open('GET', '/specs/purposelist.json');
-                xhr.send();
             }
-
+            
+        // Fills the Selector for the Access Grant Tokens Avaliable
+            var agtList; // LIST OF THE AGTS AVALIABLE
             agtFiller();
             function agtFiller(){
-                // RSA signed tokens
-                let sel = document.getElementById("tkn");
-                if (localStorage.AGT_RSA != undefined && localStorage.AGT_RSA != ""){
-                    let jsonRsa = JSON.parse(localStorage.AGT_RSA);
-                    for(var key in jsonRsa){
-                        let insert = '<option value = "RSA:'+key+'">RSA: '+ key + '</option>';
-                        sel.insertAdjacentHTML("beforeend", insert);
-                    }
-                }
-                // ECDSA tokens
-                if (localStorage.AGT_ECDSA != undefined && localStorage.AGT_ECDSA != ""){
-                    let jsonEcdsa = JSON.parse(localStorage.AGT_ECDSA);
-                    for (var key in jsonEcdsa){
-                        let insert = '<option value = "ECDSA:'+key+'">ECDSA: ' + key + '</option>';
-                        sel.insertAdjacentHTML("beforeend", insert);
-                    }
-                }
-                // NO POP tokens
-                if (localStorage.AGT_NO_LT != undefined && localStorage.AGT_NO_LT != ""){
-                    let jsonNoLT = JSON.parse(localStorage.AGT_NO_LT);
-                    for (var key in jsonNoLT){
-                        let insert = '<option value = "NOLT:'+key+'">NO LT: '+ key + '</option>';
-                        sel.insertAdjacentHTML("beforeend", insert);
-                    }
+                let agtPromList = getAgtList().then(function(agtPromList){    // Calls a function that returns all the tokens avaliable
+                    agtPromList.forEach(agt => {    // If all ok, iterates the list and shows the ids in the select
+                        document.getElementById("tkn").insertAdjacentHTML("beforeend", '<option value = "' + agt.tokenId + '">' + 
+                            (agt.tokenId.includes("#")?"":agt.keyAssociated+'#') + agt.tokenId + '</option>');
+                    });
+                    agtList = agtPromList
+                }, function(agtPromList){
+                    window.alert("Error getting AGT list");
+                    logStatus("Error", "Error getting AGT List: " + agtPromList, "console");
+                })
+            }
+
+        //  Shows AGT depending on the AGT selected 
+            document.getElementById("tkn").addEventListener("change", showAGT);
+            function showAGT(){
+                document.getElementById("AgTokenContent");
+                let tokenId = document.getElementById("tkn").value; // ID of the token requested
+                if (tokenId == "None" || agtList == undefined){ // If no agt is selected or no agtlist is avaliable
+                    document.getElementById("AgTokenContent").innerHTML = "";
+                } else {   // A token has been selected
+                    const hasId = (element) => element.tokenId == tokenId;  // Function to use in findIndex 
+                    let agt = agtList.find(hasId); // Searchs the array to find the token with the id selected
+                    console.log(agt);
+                    console.log(JSON.stringify(agt.header, null, "  ") + "<br>" + JSON.stringify(agt.payload, null, "  "))
+                    document.getElementById("AgTokenContent").innerHTML = JSON.stringify(agt.header, null, "  ") + "<br>" + JSON.stringify(agt.payload, null, "  ");
                 }
             }
-        </script>
-        <!-- Toggle data format-->
-        <script>
-            document.getElementById("sign_type").addEventListener("change", showPopOpts)
-            document.getElementById("tkn").addEventListener("change", showAGT)
 
+        // Shows the signing options to choose 
+            document.getElementById("sign_type").addEventListener("change", showPopOpts)
             function showPopOpts() {
-                if (document.getElementById("sign_type").value == "" || document.getElementById("sign_type").value == "None" 
-                || document.getElementById("sign_type".value = "Auto")){
+                if (document.getElementById("sign_type").value == "" || document.getElementById("sign_type").value == "None"){
                     document.getElementById("pop_opts").style.display = "none"
                 } else{
                     document.getElementById("pop_opts").style.display = "block"
                 }
             }
+        
+        // Toggles the Pretty or Raw vision of the AT received
             function togPrettyRaw(){
                 if (document.getElementById("raw").style.display == "none"){
                     document.getElementById("raw").style.display = "block"
@@ -199,133 +190,69 @@
                     document.getElementById("pretty").style.display = "block"
                 }
             }
-            function showAGT(){
-                let agt = document.getElementById("AgTokenContent")
-                let tokenId = document.getElementById("tkn").value
-                let tkn, tknjson
-                if (tokenId!= "None"){
-                    if (tokenId.search("RSA:") >= 0){
-                        tokenTyp = "RS256";
-                        tokenId = tokenId.slice(tokenId.search(":")+1);
-                        let rsajson = JSON.parse(localStorage.AGT_RSA);
-                        tkn = rsajson[tokenId];
-                    } else if (tokenId.search("ECDSA:") >= 0){
-                        tokenTyp = "EC256";
-                        tokenId = tokenId.slice(tokenId.search(":")+1);
-                        let ecdsajson = JSON.parse(localStorage.AGT_ECDSA);
-                        tkn = ecdsajson[tokenId];
-                    } else if (tokenId.search("NOLT:") >= 0){
-                        tokenTyp = "None";
-                        tokenId = tokenId.slice(tokenId.search(":")+1);
-                        let nopopjson = JSON.parse(localStorage.AGT_NO_LT);
-                        tkn = nopopjson[tokenId];
-                    }
-                    tknjson = jwtPretty(tkn, " ");
-                    agt.innerHTML = tknjson[1];
-                } else {
-                    agt.innerHTML = ""
-                }
-            }
         </script>
-        <!-- Request maker-->
+        
+        <!-- Request maker -->
         <script>
             var receivedToken;
-            // AT Requester
-            var Req = document.getElementById("Req");
-            var Pop = document.getElementById("Pop");
-            var Resp = document.getElementById("Resp");
-            var RespTyp = document.getElementById("RespTyp");
-            var key_thumb;
-            let sign_type;
-
-            function genAtReq() {
-                let req;
-                req = jsonRecursiveEncoding("purpose", document.getElementById("pur").value, "");
-                let tokenId = document.getElementById("tkn").value;
-                let tokenTyp = "None"
-                // Token choosing
-                if (tokenId != "None"){
-                    if (tokenId.search("RSA:") >= 0){
-                        tokenTyp = "RS256";
-                        tokenId = tokenId.slice(tokenId.search(":")+1);
-                        let rsajson = JSON.parse(localStorage.AGT_RSA);
-                        req = jsonRecursiveEncoding("token", rsajson[tokenId], req);
-                        console.log("RSA")
-                    } else if (tokenId.search("ECDSA:") >= 0){
-                        tokenTyp = "EC256";
-                        tokenId = tokenId.slice(tokenId.search(":")+1);
-                        let ecdsajson = JSON.parse(localStorage.AGT_ECDSA);
-                        req = jsonRecursiveEncoding("token", ecdsajson[tokenId], req);
-                        console.log("ECDSA")
-                    } else if (tokenId.search("NOLT:") >= 0){
-                        tokenTyp = "None";
-                        tokenId = tokenId.slice(tokenId.search(":")+1);
-                        let nopopjson = JSON.parse(localStorage.AGT_NO_LT);
-                        req = jsonRecursiveEncoding("token", nopopjson[tokenId], req);
-                        console.log("NOLT")
-                    } else {
-                        console.log("PROBLEM")
+        
+        // Generates the Access Token Request
+            async function genAtReq() {
+                // Selects the agt that will be used, if none is selected, undefined is used
+                let agt = (document.getElementById("tkn").value == "None")?undefined:agtList.find((element) => element.tokenId == document.getElementById("tkn").value);
+                // Generates the pop depending on the claims
+                let signature = document.getElementById("sign_type").value;
+                let pop;
+                if ((signature == "None") || ((signature == "Auto") && ((agt == undefined) || (agt.keyAssociated == "None")))){
+                    pop = undefined // No signature
+                } else{
+                    if (signature == "Auto"){    // Auto Signature, changes the signature type
+                        signature = agt.keyAssociated;
                     }
-                }
-                // Pop generation
-                let signTyp = document.getElementById("sign_type").value;
-                let pop = "";
-                if (signTyp == "Auto"){
-                    signTyp = tokenTyp;
-                }
-                
-                if (((signTyp == "RS256")&&(localStorage.rsaKey != null )) || 
-                ((signTyp == "ES256")&&(localStorage.ecdsaKey != null ))) {
-                    logStatus("Info", "Generating POP");
-                    pop = generatePop();
-                    if (pop != ""){
-                        req = jsonRecursiveEncoding("pop", pop, req);
-                        logStatus("Info", "POP generated correctly");
+                    await generatePop(signature).then((result)=>{   // Generates signature and shows it
+                        pop = result;
+                        document.getElementById("Pop").innerHTML = pop;
                         let popPretty = jwtPretty(pop);
                         document.getElementById("PopPretty_head").innerHTML = popPretty[0];
                         document.getElementById("PopPretty_payl").innerHTML = popPretty[1];
-                        Pop.innerHTML = pop;
-                    } else {
-                        logStatus("Error", "POP could not be generated")
-                        document.getElementById("PopPretty_head").innerHTML = pop;
-                        document.getElementById("PopPretty_payl").innerHTML = "";
-                        Pop.innerHTML = pop;
-                    }
-                } else {
-                    logStatus("Info", "POP not used");
-                    document.getElementById("PopPretty_head").innerHTML = "";
-                    document.getElementById("PopPretty_payl").innerHTML = "";
-                    Pop.innerHTML = pop;
+                    })
                 }
-                logStatus("Info", "Request body generated");
-                return req;
+                // Adds the purpose and the other values to the request and finally returns it
+                let request = { 
+                    purpose: document.getElementById("pur").value,      // Purpose is in a select
+                    token: (agt == undefined?undefined:agt.encoded),
+                    pop: pop
+                }
+                return request
             }
-            
-            try {
-                function sendAtReq(){
-                    let xhttpreq = new XMLHttpRequest();
+
+        // Sends the AT Request
+            function sendAtReq(){
+                try {
+                    let xhttpreq = new XMLHttpRequest();    // Generates http requester
                     xhttpreq.onreadystatechange = function(){
-                        if(this.readyState == 4){
-                            if (this.status != 200){
+                        if(this.readyState == 4){   // When request is finalized
+                            if (this.status != 200){    // Error request
                                 logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText);
-                            } else{
-                                if (this.responseText.length > 55){
-                                    logStatus("Info", "HTTP Response received: "+this.responseText.slice(0, 55)+ "...");
+                            } else{ // Request ok
+                                // Shows the response, trim it before showing 
+                                if (this.responseText.length > 100){
+                                    logStatus("Info", "HTTP Response received: "+this.responseText.slice(0, 100)+ "...");
                                 } else{
                                     logStatus("Info", "HTTP Response received: "+this.responseText);
                                 }
+                                // Response management and showing
                                 let response = this.responseText;
-                                let json_resp = JSON.parse(response);
-                                if (json_resp.error !== undefined){ // Error
-                                    Resp.innerHTML = response;
+                                let json_resp = JSON.parse(response);   // Parses the response to JSON
+                                if (json_resp.error !== undefined){ // Error response
+                                    document.getElementById("Resp").innerHTML = response;
                                     document.getElementById("RespErr").innerHTML = json_resp.error;
                                     document.getElementById("RespOK").style.display = "none";
                                     document.getElementById("RespFail").style.display = "block";
                                     document.getElementById("RespTypPretty").innerHTML = "Response: error";
-                                }  else if (json_resp.token !== undefined){
-                                    Resp.innerHTML = response;
+                                }  else if (json_resp.token !== undefined){ // Token response
+                                    document.getElementById("Resp").innerHTML = response;
                                     receivedToken = json_resp.token;
-                                    readySave = true;
                                     document.getElementById("saveStatus").innerHTML = "";
                                     let aTk = jwtPretty(json_resp.token);
                                     document.getElementById("RespPretty_head").innerHTML = aTk[0]
@@ -333,46 +260,38 @@
                                     document.getElementById("RespOK").style.display = "block";
                                     document.getElementById("RespFail").style.display = "none";
                                     document.getElementById("RespTypPretty").innerHTML = "Response: token";
-                                } else {
-                                    Resp.innerHTML = response;
+                                } else {    // Unknown response
+                                    document.getElementById("Resp").innerHTML = response;
                                 }
                             }
                         }
                     }
-
-                    xhttpreq.open("POST", atURL, true);
+                    // Get the atUrl from "clientscripts" file
+                    const atUrl = (urlMap.tls ? "https://": "http://") + urlMap.AtIp + ":" + urlMap.AtPort + "/ats";  
+                    xhttpreq.open("POST", atUrl, true); // Opens http req
                     //xhttpreq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-                    let req = genAtReq();
-                    logStatus("Info", "Request Body Generated")
-                    Req.textContent = req;
-                    document.getElementById("ReqPretty").innerHTML = jsonPrettify(req)
-                    logStatus("Info", "Sending AGT Request")
-                    xhttpreq.send(req);
+                    let req =  genAtReq().then(req=>{   // Obtains the request body and sends it
+                        logStatus("Info", "Request Body Generated")
+                        document.getElementById("Req").textContent = JSON.stringify(req);
+                        document.getElementById("ReqPretty").innerHTML = JSON.stringify(req, null, "  ");
+                        receivedToken = null; // Sets received token to null
+                        logStatus("Info", "Sending AGT Request")
+                        xhttpreq.send(JSON.stringify(req));
+                    }); 
+                } catch(err){
+                    logStatus("Error", err.message)
                 }
-            } catch(err){
-                logStatus("Error", err.message)
             }
         </script>
-        <!-- Token saver-->
+
+        <!---Token saver-->
         <script>
-            var readySave = false
             function saveAToken(){
-                if (!readySave){
-                    document.getElementById("saveStatus").innerHTML = "Can not save: not a token or new token not received";
-                } else if (document.getElementById("tokenID").value == ""){
-                    document.getElementById("saveStatus").innerHTML = "Can not save: enter token id";
+                if (receivedToken == null){ // If no token has been received
+                    document.getElementById("saveStatus").innerHTML = "Can not save token: no AT Received";
                 } else {
-                    let token_id = document.getElementById("tokenID").value;
-                    let act = localStorage["AT"];
-                    if (act === undefined){ // Initialize localstorage value
-                        localStorage["AT"] = '{"' + token_id + '":"' + receivedToken + '"}'
-                    } else {
-                        list = JSON.parse(act);
-                        list[token_id] = receivedToken;
-                        localStorage["AT"] = JSON.stringify(list);
-                    }  
-                    document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";
-                    readySave = false;
+                    document.getElementById("saveStatus").innerHTML = "Token Saved";
+                    storeAt(receivedToken, document.getElementById("tokenID").value);
                 }
             }
         </script>

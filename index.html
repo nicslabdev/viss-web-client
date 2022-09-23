@@ -7,36 +7,34 @@
 		<link rel="icon" href="images/favicon.ico">
 		<link rel="stylesheet" href="styles/menu.css" type="text/css">
 		<link rel="stylesheet" href="styles/general.css" type="text/css">
-		<script src="wasm_exec.js"></script>
-		<!-- <script src = "scripts/js/crypto.js"></script> -->
-		<script> 
-			const go = new Go();
-			WebAssembly.instantiateStreaming(fetch("scripts/go/golib.wasm"), go.importObject).then((result) => {
-				go.run(result.instance);
-			});
-		</script>
 		<script src = "scripts/js/logger.js"></script>
-        <script src = "scripts/js/encoding.js"></script>
-		<script src = "scripts/js/clientscripts.js"></script>
+		<script src = "scripts/js/encoding.js"></script>
+		<script src = "scripts/js/clientcrypto.js"></script>
 	</head>
 	<body>
 		<script src = "scripts/js/menu.js"></script>
 		<h1>MAIN PAGE</h1>
+		
 		<h2>Key Management</h2>
+		
 		<h3>RSA Key</h3>
 		<div class = "horiz_click_list" id = "rsa">
-			<button onclick = "generateRsa()" class="normal_button" id = "genRsaButton">Generate New RSA Key</button>
-			<button onclick = "importRsa()" class="normal_button" id = "impRsaButton">Import RSA Key</button>
-			<button onclick = "showRsa()" class="normal_button" id = "showRsaButton">Show RSA Key</button>
+			<button onclick = "generateClientKey('RSA');" class="normal_button" id = "genRsaButton">Generate New RSA Key</button>
+			<button onclick = "downloadPublicKey('RSA')" class="normal_button" id = "exportPublicRsaButton">Export Public Key (SPKI)</button>
+			<input type = "file" id = "importRSA" style="display: none;" accept=".pem">
+			<button onclick = "clickImport('RSA')" class="normal_button" id = "importRsaButton">Import Key (PKCS#8 format)</button>
+			<p id = "rsaData" class="gen">RSA Not Avaliable</p>
 		</div>
-		<p id = "rsaData" class="gen">Not avaliable</p>
+
 		<h3>ECDSA Key</h3>
 		<div class = "horiz_click_list" id = "ecdsa">
-			<button onclick = "generateEcdsa()" class="normal_button" id = "genEcdsaButton">Generate New ECDSA Key</button>
-			<button onclick = "importEcdsa()" class="normal_button" id = "impEcdsaButton">Import ECDSA Key</button>
-			<button onclick = "showEcdsa()" class="normal_button" id = "showEcdsaButton">Show ECDSA Key</button>
+			<button onclick = "generateClientKey('ECDSA');" class="normal_button" id = "genEcdsaButton">Generate New ECDSA Key</button>
+			<button onclick = "downloadPublicKey('ECDSA')" class="normal_button" id = "exportPublicEcdsaButton">Export Public Key (SPKI)</button>
+			<input type = "file" id = "importECDSA" onchange="handleImport(this.files, 'ECDSA')" style="display: none;" accept=".pem">
+			<button onclick = "clickImport('ECDSA')" class="normal_button" id = "importEcdsaButton">Import Key (PKCS#8 format)</button>
+			<p id = "ecdsaData" class ="gen">ECDSA Not Avaliable</p>
 		</div>
-		<p id = "ecdsaData" class ="gen">Not avaliable</p>
+		
 		<h2>IP Settings</h2>
 		<div class = "horiz_click_list" id = "serverURLS">
 			<div class ="title">AGT IP + PORT</div>
@@ -44,48 +42,45 @@
 			<input id = "agt_port" type = "text" value = "7500" placeholder="AGT Server Port" style="width:10%;">
 			<div class = "title">AT IP + PORT </div>
 			<input id = "at_ip" type = "text" value = "localhost" placeholder="AT Server IP" style="width:20%;"> 
-			<input id = "at_port" type = "text" value = "8080" placeholder="AT Server Port" style="width:10%;">
+			<input id = "at_port" type = "text" value = "8600" placeholder="AT Server Port" style="width:10%;">
 			<div class = "title">VISS IP + HTTP PORT + WS PORT </div>
 			<input id = "viss_ip" type = "text" value = "localhost" placeholder="VISS Server IP" style= "width:20%;">
 			<input id = "viss_http_port" type = "text" value = "8888" placeholder="VISS HTTP Port" style="width:10%;"> 
 			<input id = "viss_ws_port" type = "text" value = "8080" placeholder="VISS WS Port" style="width:10%;"> <br><br>
 			<button class = "small_button" onclick="setAddress()">Set</button>
 		</div>
-
+		<script src = "scripts/js/clientscripts.js"></script>
 		<script>
-			function init() {
-				if(localStorage.getItem("rsaKey")!== null){
-					document.getElementById("rsaData").textContent = "RSA Key Avaliable"
+			async function logKeyStatus(){
+				if (document.getElementById("rsaData") != null){
+					document.getElementById("rsaData").textContent = (await checkKeyAsync("RSA")) ? "RSA Avaliable" : "RSA Not Avaliable";
 				}
-				if(localStorage.getItem("ecdsaKey") !== null){
-					document.getElementById("ecdsaData").textContent = "ECDSA Key Avaliable"
-				}
-				initAddress();
-			}
-			init()
-
-			function importRsa(){
-				document.getElementById("rsaData").textContent = "Not supported already"
-			}
-			function showRsa(){
-				if (localStorage.getItem("rsaKey") === null){
-					document.getElementById("rsaData").textContent = "No RSA Key Avaliable"
-				} else{
-					document.getElementById("rsaData").textContent = localStorage.getItem("rsaKey") 
+				if (document.getElementById("ecdsaData") != null){
+					document.getElementById("ecdsaData").textContent = (await checkKeyAsync("ECDSA")) ? "ECDSA Avaliable" : "ECDSA Not Avaliable";
 				}
 			}
-			function importEcdsa(){
-				document.getElementById("ecdsaData").textContent = "Not supported already"
-			}
-			function showEcdsa(){
-				if (localStorage.getItem("ecdsaKey") === null){
-					document.getElementById("ecdsaData").textContent = "No ECDSA Key Avaliable"
-				} else{
-					document.getElementById("ecdsaData").textContent = localStorage.getItem("ecdsaKey") 
-				}
-			}
+			logKeyStatus();
 			
-
+			// Handles the import of the Key when file is selected
+			function clickImport(alg){
+				document.getElementById("import" + alg).click();
+			}
+			document.getElementById("importRSA").onchange = function(){ handleImport(this.files, 'RSA')}
+			document.getElementById("importECDSA").onchange = function(){ handleImport(this.files, 'ECDSA')}
+			function handleImport(fileList, alg){
+				if (fileList && fileList.length > 0){	// If a file was selected
+					const file = fileList.item(0);
+					const reader = new FileReader(); 	// Reader Object to read the file
+					reader.addEventListener("load", () => {	// Handler to launch when finished the file reading 
+						const fileContent = reader.result;
+						importPrivateKey(fileContent, alg);
+					})
+					reader.readAsText(file);	// Reads the file
+				} else {
+					logStatus("Info","Import key: No compatible file was selected for import", "console");
+					window.alert("No key was imported")
+				}
+			}
 		</script>
 	</body>
 </html>

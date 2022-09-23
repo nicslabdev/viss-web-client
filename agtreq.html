@@ -8,20 +8,11 @@
 		<link rel="icon" href="images/favicon.ico">
         <link rel="stylesheet" href="styles/menu.css" type="text/css">
 		<link rel="stylesheet" href="styles/general.css" type="text/css">
-		<script src="wasm_exec.js"></script>
-        <!-- <script src="scripts/js/crypto.js"></script> -->
         <script src="scripts/js/logger.js"></script>
-		<script> //type="module"
-			//import axios from 'axios': USED TO FETCH WHEN NOT USING WEB SERVER
-			const go = new Go();
-			//WebAssembly.instantiateStreaming(axios.get("scripts/go/golib.wasm"), go.importObject).then((result) => {
-			WebAssembly.instantiateStreaming(fetch("scripts/go/golib.wasm"), go.importObject).then((result) => {
-				go.run(result.instance);
-			});
-		</script>
+        <script src="scripts/js/clientcrypto.js"></script>
         <script src = "scripts/js/encoding.js"></script>
         <script src = "scripts/js/clientscripts.js"></script>
-        <script src = "serverURLS.js"></script>
+        <script src = "scripts/js/tokenhandler.js"></script>
 	</head>
 	<body>
         <script src = "scripts/js/menu.js"></script>
@@ -165,10 +156,11 @@
                 }
             }
         </script>
+
         <!-- Request maker-->
         <script>
-            var receivedToken;
-            var Req = document.getElementById("Req");
+            var receivedToken;  // Stores the token received 
+            //var Req = document.getElementById("Req");
             var Pop = document.getElementById("Pop");
             var Resp = document.getElementById("Resp");
             var RespTypPretty = document.getElementById("RespTypPretty");
@@ -182,129 +174,118 @@
                 req = jsonRecursiveEncoding("context",document.getElementById("user_role").value + "+"
                 + document.getElementById("app_role").value + "+" + document.getElementById("dev_role").value, req);
                 req = jsonRecursiveEncoding("proof", document.getElementById("proof").value, req);
-                req = jsonRecursiveEncoding("key", getPublicThumbprint(document.getElementById("sign_typ")) , req)
                 return req;
             }
             //Generates the URL for the AGT
             const AgtUrl = (urlMap.tls ? "https://": "http://") + urlMap.AgtIp + ":" + urlMap.AgtPort + "/agts"; 
-            try {
-                function sendAgtReq(){
-                    RespTypPretty.innerHTML = "Response";
-                    RespPretty_head.innerHTML = "";
-                    RespPretty_payl.innerHTML = "";
-                    Resp.innerHTML = "";
+            async function sendAgtReq(){
+                try {
+                    //async function sendAgtReq(){
+                        RespTypPretty.innerHTML = "Response";
+                        RespPretty_head.innerHTML = "";
+                        RespPretty_payl.innerHTML = "";
+                        Resp.innerHTML = "";
 
-                    let xhttpreq = new XMLHttpRequest();
-                    xhttpreq.onreadystatechange = function(){
-                        if(this.readyState == 4){
-                            if (this.status != 200){
-                                logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText + ". Response: " + this.responseText);
-                                let response = this.responseText;
-                                Resp.innerHTML = response;
-                                document.getElementById("RespErr").innerHTML = response;
-                                document.getElementById("RespOK").style.display = "none";
-                                document.getElementById("RespFail").style.display = "block";
-                                document.getElementById("RespTypPretty").innerHTML = "Response: Error "+this.status;
-                                Resp.innerHTML = response
-                            } else{
-                                if (this.responseText.length > 55){
-                                    logStatus("Info", "HTTP Response received: "+this.responseText.slice(0, 55)+ "...");
-                                } else{
-                                    logStatus("Info", "HTTP Response received: "+this.responseText);
-                                }
-                                let response = this.responseText;
-                                let json_resp = JSON.parse(response);
-                                if (json_resp.error !== undefined){ // Error
+                        // XML Request
+                        let xhttpreq = new XMLHttpRequest();
+                        xhttpreq.onreadystatechange = function(){   // State Change method
+                            if(this.readyState == 4){
+                                if (this.status != 200){
+                                    logStatus("Error", "HTTP Request status: "+this.status+",data: "+this.statusText + ". Response: " + this.responseText);
+                                    let response = this.responseText;
                                     Resp.innerHTML = response;
-                                    document.getElementById("RespErr").innerHTML = json_resp.error;
+                                    document.getElementById("RespErr").innerHTML = response;
                                     document.getElementById("RespOK").style.display = "none";
                                     document.getElementById("RespFail").style.display = "block";
-                                    document.getElementById("RespTypPretty").innerHTML = "Response: error";
-                                }  else if (json_resp.token !== undefined){
-                                    Resp.innerHTML = response;
-                                    receivedToken = json_resp.token;
-                                    readySave = true;
-                                    document.getElementById("saveStatus").innerHTML = "";
-                                    let agTk = jwtPretty(json_resp.token);
-                                    document.getElementById("RespPretty_head").innerHTML = agTk[0]
-                                    document.getElementById("RespPretty_payl").innerHTML = agTk[1]
-                                    document.getElementById("RespOK").style.display = "block";
-                                    document.getElementById("RespFail").style.display = "none";
-                                    document.getElementById("RespTypPretty").innerHTML = "Response: token";
-                                } else {
-                                    Resp.innerHTML = response;
+                                    document.getElementById("RespTypPretty").innerHTML = "Response: Error "+this.status;
+                                    Resp.innerHTML = response
+                                } else{
+                                    if (this.responseText.length > 55){
+                                        logStatus("Info", "HTTP Response received: "+this.responseText.slice(0, 55)+ "...");
+                                    } else{
+                                        logStatus("Info", "HTTP Response received: "+this.responseText);
+                                    }
+                                    let response = this.responseText;
+                                    let json_resp = JSON.parse(response);
+                                    if (json_resp.error !== undefined){ // Error
+                                        Resp.innerHTML = response;
+                                        document.getElementById("RespErr").innerHTML = json_resp.error;
+                                        document.getElementById("RespOK").style.display = "none";
+                                        document.getElementById("RespFail").style.display = "block";
+                                        document.getElementById("RespTypPretty").innerHTML = "Response: error";
+                                    }  else if (json_resp.token !== undefined){
+                                        Resp.innerHTML = response;
+                                        receivedToken = json_resp.token;
+                                        document.getElementById("saveStatus").innerHTML = "";
+                                        let agTk = jwtPretty(json_resp.token);
+                                        document.getElementById("RespPretty_head").innerHTML = agTk[0]
+                                        document.getElementById("RespPretty_payl").innerHTML = agTk[1]
+                                        document.getElementById("RespOK").style.display = "block";
+                                        document.getElementById("RespFail").style.display = "none";
+                                        document.getElementById("RespTypPretty").innerHTML = "Response: token";
+                                    } else {
+                                        Resp.innerHTML = response;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    xhttpreq.open("POST", AgtUrl, true);
-                    //xhttpreq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-                    let req = genAgtReq();
-                    logStatus("Info", "Request Body Generated")
+                        xhttpreq.open("POST", AgtUrl, true);
+                        //xhttpreq.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                        let req = genAgtReq();
+                        logStatus("Info", "Request Body Generated")
 
-                    if (((document.getElementById("sign_type").value == "RS256")&&(localStorage.rsaKey != null )) || 
-                    ((document.getElementById("sign_type").value == "ES256")&&(localStorage.ecdsaKey != null ))) {
-                        logStatus("Info", "Generating POP")
-                        let pop = generatePop()
-                        Pop.innerHTML = pop
-
-                        if (pop != ""){
-                            xhttpreq.setRequestHeader("PoP", pop);
-                            req = jsonRecursiveEncoding("key", document.getElementById("jwk_thumb").textContent, req);
-                            logStatus("Info", "POP generated correctly")
-                            let popPretty = jwtPretty(pop)
-                            document.getElementById("PopPretty_head").innerHTML = popPretty[0]
-                            document.getElementById("PopPretty_payl").innerHTML = popPretty[1]
+                        // If a signing algorithm is selected, a POP must be generated
+                        if ((document.getElementById("sign_type").value == "RS256") 
+                        || ((document.getElementById("sign_type").value == "ES256"))){
+                            logStatus("Info", "Generating POP");
+                            if ((document.getElementById("sign_type").value == "RS256") && (! await checkKeyAsync("RSA"))){
+                                window.alert("RSA Key Not Avaliable");
+                                return;
+                            }
+                            if ((document.getElementById("sign_type").value == "ES256") && (! await checkKeyAsync("ECDSA"))){
+                                window.alert("ECDSA Key Not Avaliable");
+                                return;
+                            }
+                            let pop = await generatePop();
+                            if (pop != ""){
+                                xhttpreq.setRequestHeader("PoP", pop);
+                                req = jsonRecursiveEncoding("key", await getPublicThumbprint(document.getElementById("sign_type").value) , req);
+                                logStatus("Info", "POP generated correctly");
+                                document.getElementById("Pop").innerHTML = pop;
+                                let popPretty = jwtPretty(pop);
+                                document.getElementById("PopPretty_head").innerHTML = popPretty[0];
+                                document.getElementById("PopPretty_payl").innerHTML = popPretty[1];
+                            } else {
+                                logStatus("Error", "POP could not be generated");
+                                document.getElementById("PopPretty_head").innerHTML = pop;
+                                document.getElementById("PopPretty_payl").innerHTML = "";
+                                return
+                            }
                         } else {
-                            logStatus("Error", "POP could not be generated")
-                            document.getElementById("PopPretty_head").innerHTML = pop
-                            document.getElementById("PopPretty_payl").innerHTML = ""
-                            return
+                            logStatus("Info", "POP not used, expecting not long term token");
+                            Pop.innerHTML = "";
+                            document.getElementById("PopPretty_head").innerHTML = "";
+                            document.getElementById("PopPretty_payl").innerHTML = "";
                         }
-                    } else {
-                        logStatus("Info", "POP not used, expecting not long term token")
-                        Pop.innerHTML = ""
-                        document.getElementById("PopPretty_head").innerHTML = ""
-                        document.getElementById("PopPretty_payl").innerHTML = ""
-                    }
-                    Req.textContent = req;
-                    document.getElementById("ReqPretty").innerHTML = jsonPrettify(req)
-                    logStatus("Info", "Sending AGT Request")
-                    xhttpreq.send(req);
+                        document.getElementById("Req").textContent = req;
+                        document.getElementById("ReqPretty").innerHTML = jsonPrettify(req);
+                        logStatus("Info", "Sending AGT Request");
+                        receivedToken = null; // Sets received token to null before sending request
+                        xhttpreq.send(req);
+                } catch(err){
+                    logStatus("Error", err.message)
                 }
-            } catch(err){
-                logStatus("Error", err.message)
             }
         </script>
         <!-- Token saver-->
         <script>
-            var readySave = false
             function saveAgToken(){
-                if (!readySave){
-                    document.getElementById("saveStatus").innerHTML = "Can not save: not a token or new token not received";
-                } else if (document.getElementById("tokenID").value == ""){
-                    document.getElementById("saveStatus").innerHTML = "Can not save: enter token id";
+                if (receivedToken == null){ // If no token has been received
+                    document.getElementById("saveStatus").innerHTML = "Can not save token: no AGT Received";
                 } else {
-                    let token_id = document.getElementById("tokenID").value;
-                    let token_typ;
-                    if (document.getElementById("sign_type").value == "None"){
-                        token_typ = "AGT_NO_LT";
-                    } else if (document.getElementById("sign_type").value == "RS256"){
-                        token_typ = "AGT_RSA";
-                    } else if (document.getElementById("sign_type").value == "ES256"){
-                        token_typ = "AGT_ECDSA";
-                    }
-                    let act = localStorage[token_typ];
-                    if (act === undefined){ // Initialize localstorage value
-                        localStorage[token_typ] = '{"' + token_id + '":"' + receivedToken + '"}'
-                    } else {
-                        list = JSON.parse(act);
-                        list[token_id] = receivedToken;
-                        localStorage[token_typ] = JSON.stringify(list);
-                    }
-                    document.getElementById("saveStatus").innerHTML = "Token with id "+ token_id + " saved successfully";  
-                    readySave = false;
+                    document.getElementById("saveStatus").innerHTML = "Token Saved";
+                    storeAgt(document.getElementById("sign_type").value, receivedToken, document.getElementById("tokenID").value);
                 }
             }
         </script>

@@ -7,6 +7,7 @@ function timeConv(tim){
 }
 
 function logStatus(typ, data, logplace) {
+    //if (typ == debug){return};
     let current = new Date();
     var date = timeConv(current.getDate())+"/"+timeConv((1 + current.getMonth()))+"/"+current.getFullYear()
     +", "+timeConv(current.getHours())+":"+timeConv(current.getMinutes())+":"+timeConv(current.getSeconds());
@@ -23,8 +24,9 @@ function logStatus(typ, data, logplace) {
             break;
         default:
             //document.getElementById("log_data").innerHTML += logdata + "<br>";
-            document.getElementById("log_data").insertAdjacentHTML("afterbegin", logdata + "<br>\n");
-            //console.log 
+            if (document.getElementById("log_data") != null){
+                document.getElementById("log_data").insertAdjacentHTML("afterbegin", logdata + "<br>\n");
+            }
             break; 
     }
 }

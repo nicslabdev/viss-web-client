@@ -36,3 +36,22 @@ function initAddress() {
         setAddress();
     } 
 }
+
+// Useful scripts for HTML elements
+function showId(id){
+    document.getElementById(id).style.display = "block";
+}
+function hideId(id){
+    document.getElementById(id).style.display = "none";
+}
+function checkId(id, checked){  // Checks an input, triggering the onchange event
+    document.getElementById(id).checked = checked;
+    let evnt = document.createEvent("HTMLEvents");
+    evnt.initEvent("change", false, true);
+    document.getElementById(id).dispatchEvent(evnt);
+}
+function triggerOnChange(id){
+    let evnt = document.createEvent("HTMLEvents");
+    evnt.initEvent("change", false, true)
+    document.getElementById(id).dispatchEvent(evnt);
+}

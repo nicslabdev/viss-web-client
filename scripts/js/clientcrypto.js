@@ -2,28 +2,15 @@
 var clientDbRequest = window.indexedDB.open("ClientDB", 1);
 // Error management
 clientDbRequest.onerror = function (event) {
-    console.error("Error with manager Indexed DB");
+    console.error("Error with Client Indexed DB");
     console.error(event);
-    window.alert("Error using manager indexedDB");
+    window.alert("Error using Client indexedDB");
 }
 // Used when creating a DB or changing its version number
 clientDbRequest.onupgradeneeded = function (event) {
-    var keyStore = clientDbRequest.result.createObjectStore("KeyStorage", { keyPath: "id" }); // Creates object store, used to store the keys
-    keyStore.createIndex("DBKey", ["keyPair"], { unique: true });
-    var agtStore = clientDbRequest.result.createObjectStore("AGTStorage", { keyPath: "id"});
-    agtStore.createIndex("tokens", ["tokens"]);
-    var atStore = clientDbRequest.result.createObjectStore("ATStorage", {keyPath: "id"});
-    atStore.createIndex("tokens", ["tokens"]);
+    var keyStore = clientDbRequest.result.createObjectStore("KeyStorage", { keyPath: "id" }); // Creates object store, key id is used as keyPath
 }
-
 clientDbRequest.onsuccess = function (event) {
-    /*var db = mgmDbRequest.result;
-    var transaction = db.transaction("KeyStorage", "readwrite");
-
-    var store = transaction.objectStore("KeyStorage");
-    var rsaIndex = store.index("DBKey");
-
-    store.put({ id: "key1", keyPair: "k1cont" });*/
 }
 
 // Uses IndexedDB + SubtleCrypto to generate a Keypair. RSA and ECDSA algorithms supported.
@@ -35,6 +22,7 @@ function generateClientKey(algorithm) {
         window.alert("Error using client indexedDB");
     }
     request.onsuccess = function (event) {
+        var db = event.target.result;
         logStatus("Info", "Indexed DB ok, generating " + algorithm + " key", "console");
         var keyPair;
         switch (algorithm) {
@@ -49,9 +37,10 @@ function generateClientKey(algorithm) {
                     false,
                     ["sign"]
                 ).then(function (keyPair) {
-                    request.result.transaction("KeyStorage", "readwrite").objectStore("KeyStorage").put({ id: algorithm, keyPair: keyPair });
+                    db.transaction("KeyStorage", "readwrite").objectStore("KeyStorage").put({ id: algorithm, keyPair: keyPair });
                     window.alert("RSA Key Pair Generated");
                     logStatus("Info", "RSA Key Pair generated", "console");
+                    document.getElementById("rsaData").textContent = "RSA Avaliable";
                 });
                 break;
             case "ECDSA":
@@ -60,12 +49,13 @@ function generateClientKey(algorithm) {
                         name: "ECDSA",
                         namedCurve: "P-256"
                     },
-                    false,
+                    false,                              
                     ["sign"]
                 ).then(function (keyPair) {
-                    request.result.transaction("KeyStorage", "readwrite").objectStore("KeyStorage").put({ id: algorithm, keyPair: keyPair });
+                    db.transaction("KeyStorage", "readwrite").objectStore("KeyStorage").put({ id: algorithm, keyPair: keyPair })
                     window.alert("ECDSA Key Pair Generated");
                     logStatus("Info", "ECDSA Key Pair generated", "console");
+                    document.getElementById("ecdsaData").textContent = "ECDSA Avaliable";
                 });
                 break;
             default:
@@ -99,8 +89,123 @@ function getKeyAsync(algorithm){
     })
 }
 
-// Exports the saved key
-async function exportPublicKey(algorithm) {
+// Imports the key
+function importPrivateKey(stringKey, algorithm){
+    request = window.indexedDB.open("ClientDB", 1); // Open IndexedDatabase to store the key
+    request.onerror = function (event) {
+        logStatus("Error", "Error with client Indexed DB", "console");
+        console.error(event);
+        window.alert("Error using client indexedDB");
+    }
+    request.onsuccess = function (event) {  
+        var db = event.target.result;
+        var privateKey; // Stores the private key
+        var arrBuffKey; // Stores the key as array buffer
+        // Formats the key for import (substract header, footer and convert to arrayBuffer)
+        const pemHeader = ["-----BEGIN PRIVATE KEY-----"];
+        const pemFooter = ["-----END PRIVATE KEY-----"];
+        if (stringKey.includes(pemHeader) && stringKey.includes(pemFooter)){    
+            stringKey = stringKey.replace(pemHeader, "");
+            stringKey = stringKey.replace(pemFooter, "");
+            arrBuffKey = str2ab(window.atob(stringKey));    // base64 to binary, then to arraybuffer
+        } else {    // In case the string key does not contain the head+foot
+            logStatus("Error", "Private Key not imported: Invalid format", "console");
+            window.alert("Could not import Key, invalid format");
+            return;
+        }
+        // Imports depending on the algorithm used
+        switch (algorithm) {
+            case "RSA":
+                // Obtains private key from the key as arraybuffer
+                privateKey = window.crypto.subtle.importKey("pkcs8", arrBuffKey, {name:"RSASSA-PKCS1-v1_5", hash:"SHA-256"}, false, ["sign"]).then(
+                    function(privateKey) {  // On success, generates the private key 
+                        // Re-imports the private key with extractable claim fixed as "true", to use with generate Public Key, no need to check, the first worked
+                        let privtoExport = window.crypto.subtle.importKey("pkcs8", arrBuffKey, {name:"RSASSA-PKCS1-v1_5", hash:"SHA-256"}, true, ["sign"]).then(
+                            function(privtoExport){
+                                publicKey = generatePublicKey(privtoExport).then( // Obtains the public key associated with the private key
+                                function (publicKey){                            
+                                    var keyPair = {
+                                        privateKey: privateKey,
+                                        publicKey: publicKey
+                                    }
+                                    db.transaction("KeyStorage", "readwrite").objectStore("KeyStorage").put({ id: algorithm, keyPair: keyPair });
+                                    window.alert("RSA Key Imported");
+                                    logStatus("Info", "RSA Key Pair imported correctly", "console");
+                                    document.getElementById("rsaData").textContent = "RSA Avaliable";
+                                }, function (publicKey){    // In case of failure obtaining public key
+                                    window.alert("Could not import RSA Key");
+                                    logStatus("Error", "RSA Key not imported: Error obtaining public key: " + publicKey, "console");
+                                })
+                            })
+                }, function(privateKey) {
+                        window.alert("Could not import RSA key");
+                        logStatus("Error", "RSA Key Pair not imported: " + privateKey, "console");
+                });
+                break;
+            case "ECDSA":
+                privateKey = window.crypto.subtle.importKey("pkcs8", arrBuffKey, {name:"ECDSA", namedCurve:"P-256"}, false, ["sign"]).then(
+                    function(privateKey) {
+                        let privtoExport = window.crypto.subtle.importKey("pkcs8", arrBuffKey, {name:"ECDSA", namedCurve:"P-256"}, true, ["sign"]).then(
+                            function(privtoExport){
+                                publicKey = generatePublicKey(privtoExport).then( // Obtains the public key associated with the private key
+                                function (publicKey){                            
+                                    var keyPair = {
+                                        privateKey: privateKey,
+                                        publicKey: publicKey
+                                    }
+                                    db.transaction("KeyStorage", "readwrite").objectStore("KeyStorage").put({ id: algorithm, keyPair: keyPair });
+                                    window.alert("ECDSA Key Imported");
+                                    logStatus("Info", "ECDSA Key Pair imported correctly", "console");
+                                    document.getElementById("ecdsaData").textContent = "ECDSA Avaliable";
+                                }, function (publicKey){    // In case of failure obtaining public key
+                                    window.alert("Could not import ECDSA Key");
+                                    logStatus("Error", "ECDSA Key not imported: Error obtaining public key: " + publicKey, "console");
+                                })
+                            })                     
+                }, function(privateKey) {
+                        window.alert("Could not import ECDSA key");
+                        logStatus("Error", "ECDSA Private Key not imported: " + privateKey, "console");
+                });
+                break;
+            default:
+                logStatus("Info","importKey: Invalid key type: " + algorithm, "console");
+                break;
+        }
+    }
+}
+
+// Obtains a PublicKey Object from CryptoKey Private Object
+function generatePublicKey(privateKey) {
+    logStatus("Info", "Getting public key from private key", "console");
+    return new Promise (function (resolve, reject){
+        let pubKey;
+        jwKey = window.crypto.subtle.exportKey("jwk", privateKey).then( // Exports to JWK, then delete private claims    
+            function(jwKey){    // On success, delete private claims and return public key
+                delete (jwKey.ext);
+                delete (jwKey.key_ops);
+                delete (jwKey.d);
+                switch (privateKey.algorithm.name){
+                    case "RSASSA-PKCS1-v1_5":   
+                        delete (jwKey.dp);
+                        delete (jwKey.dq);
+                        delete (jwKey.p);
+                        delete (jwKey.q);
+                        delete (jwKey.qi);
+                        resolve(window.crypto.subtle.importKey("jwk", jwKey, {name:"RSASSA-PKCS1-v1_5", hash: "SHA-256"}, true, [])); // Imports public key in jwk obtained
+                        break;
+                    case "ECDSA":
+                        delete (jwKey.alg);
+                        resolve(window.crypto.subtle.importKey("jwk", jwKey, {name:"ECDSA", namedCurve: "P-256"}, true, [])); // Imports public key in jwk obtained
+                        break;
+                }
+            }, function(jwKey){ // Returns failed promise if it does not success
+                    reject (jwKey);   
+            });
+    });
+}
+
+// Exports the saved key as a file
+async function downloadPublicKey(algorithm) {
     const KeyPair = await getKeyAsync(algorithm); // Gets the KeyPair object
     if (KeyPair == null){
         logStatus("Error", "Cannot export key, no key avaliable", "console");
@@ -117,8 +222,8 @@ async function exportPublicKey(algorithm) {
     var url = URL.createObjectURL(blob);
     var pom = document.createElement('a');
     pom.href = url;
-    pom.setAttribute('download', algorithm+"_mgr_key.pub");
-    //pom.click();
+    pom.setAttribute('download', algorithm+"_client_key.pub");
+    pom.click();
     logStatus("Info", "Public Key File Generated and Exported", "console")
 }
 
@@ -165,9 +270,6 @@ async function getPublicThumbprint(algorithm){
 }
 
 
-
-
-
 // Checks the existance of a key using the given algorithm
 function checkKeyAsync(algorithm){
     return new Promise(function(resolve){
@@ -178,6 +280,7 @@ function checkKeyAsync(algorithm){
             console.error(event);
             window.alert("Error using client indexedDB");
             resolve(false);
+            return;
         }
         // If no error opening the database, makes the request to the database
         request.onsuccess = function (event) {
@@ -185,10 +288,13 @@ function checkKeyAsync(algorithm){
             getRequest.onerror = function(event){
                 logStatus("Info", "checkKey: error reading key "+ algorithm+ " : " + event, "console");
                 resolve(false);
+                return;
             }
             getRequest.onsuccess = function(event){
-                console.log("Type: " + typeof(getRequest.result.keyPair));
-                console.log("Result: " + getRequest.result.keyPair)
+                if (getRequest.result == undefined){
+                    resolve(false);
+                    return;
+                }
                 if (Object.hasOwn(getRequest.result, 'keyPair')&&   // Checks if its KeyPair type
                 Object.hasOwn(getRequest.result.keyPair, 'privateKey')
                 && Object.hasOwn(getRequest.result.keyPair, 'publicKey')){
@@ -201,24 +307,9 @@ function checkKeyAsync(algorithm){
     })
 }
 
-// Stores the Token received in the correct database
-function storeToken(tokenTyp, tokenId, token) {
-    request = window.indexedDB.open("ClientDB", 1);
-    request.onerror = function (event) {
-        logStatus("Error", "Error with client Indexed DB", "console");
-        console.error(event);
-        window.alert("Error using client indexedDB");
-    }
-    request.onsuccess = function (event) {
-        logStatus("Info", "Indexed DB ok, saving " + tokenTyp + " "  + id , "console");
-        request.result.transaction(tokenTyp + "Storage", "readwrite").objectStore(tokenTyp + "Storage").put({ id: tokenId, tokens: token });
-        logStatus("Info", "Token Stored" , "console");
-    };           
-}
-
-
 // Generates pop from data obtained from HTML code or uses defaults
-async function generatePop2(){    const alg = document.getElementById("sign_type").value;
+async function generatePop(algorithm){    
+    const alg = (algorithm == undefined)? document.getElementById("sign_type").value : algorithm;
 	var header =  {
 		typ : "dpop+jwt",
 		alg : alg,
@@ -240,21 +331,19 @@ async function generatePop2(){    const alg = document.getElementById("sign_type
         payload.aud = document.getElementById("pop_aud").value;
     } 
 
+    payload.iat = Number.parseInt(Date.now() / 1000) // From unix ms to seconds
 	// If there is an item with id "pop_iat", it allows the user to customize the iat for debugging
     if (document.getElementById("pop_iat") != null && document.getElementById("pop_iat").value != "auto"){
         let iatModifier = document.getElementById("pop_iat").value;
         if (iatModifier.charAt() == "+"){
             iatModifier = iatModifier.replace("+", "");
-            iat = Date.now() + parseInt(iatModifier);
+            payload.iat = payload.iat + parseInt(iatModifier);
         } else if (iatModifier.charAt() == "-"){
             iatModifier = iatModifier.replace("-", "");
-            iat = Date.now() - parseInt(iatModifier);
-        } else {
-            payload.iat = iatModifier;
-        }
-    } else {
-        payload.iat = Date.now();
-    }
+            payload.iat = payload.iat - parseInt(iatModifier);
+        } 
+    } 
+    payload.iat = payload.iat.toString();
 
     // Signing depends on the algorithm
     let signature;
@@ -284,10 +373,9 @@ async function generatePop2(){    const alg = document.getElementById("sign_type
             );
         break;
         default:
-            window.alert("No algorithm selected");
+            window.alert("Call to generatePop with unvalid alg: " + header.alg);
             return;
     }
-    console.log(signature)
     signature = strEncodeBase64URLSafe(ab2str(signature));  //From array buffer to string and then base64
     return headpluspayload + "." + signature;
 } 

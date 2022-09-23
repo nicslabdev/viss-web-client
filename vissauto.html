@@ -2,138 +2,164 @@
 
 <html>
 	<head>
-        <title>VISS Web Client - VISS Request</title>
+        <title>VISS Web Client - Automatic Requester</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="icon" href="images/favicon.ico">
         <link rel="stylesheet" href="styles/menu.css" type="text/css">
 		<link rel="stylesheet" href="styles/general.css" type="text/css">
         <script src = "scripts/js/encoding.js"></script>
-        <script src = "scripts/js/logger.js"></script>
         <script src = "scripts/js/clientscripts.js"></script>
+        <script src = "scripts/js/logger.js"></script>
+        <script src = "scripts/js/encoding.js"></script>
         <script src = "scripts/js/tokenhandler.js"></script>
+        <script src = "scripts/js/autoclient.js"></script>
 	</head>
 	<body>
         <script src = "scripts/js/menu.js"></script>
-		<h2>VISS Client</h2><br>
-        <div id = gt_opts class="vert_select_list">
-            <p class="subject">VISS Request</p>
-            <div class = "row">
-                <div class = "column" style="width: 15%;">
-                    <label for = "token">Access Token</label>
-                    <br><select id = "token" name = "token">
-                        <option value = "None">None</option>
+		<h2>VISS Automatic Client</h2>
+
+        <div id = "client_context" class = "vert_select_list row">
+            <p class="subject">Client Context</p>
+            <label for="user_role">User Role</label> 
+            <select id = "user_role" name = "user_role">
+                <option value = "Independent">Independent</option>
+                <option value = "OEM">OEM</option>
+                <option value = "Dealer">Dealer</option>
+                <option value = "Owner">Owner</option>
+                <option value = "Driver">Driver</option>
+                <option value = "Passenger">Passenger</option>
+            </select>
+            <label for="app_role">App Role</label>
+            <select id="app_role" name = "app_role">
+                <option value = "OEM">OEM</option>
+                <option value = "Third party">Third Party</option>
+            </select>
+            <label for="dev_role">Device Role</label>
+            <select id="dev_role" name = "dev_role">
+                <option value = "Cloud">Cloud</option>
+                <option value = "Nomadic">Nomadic</option>
+                <option value = "Vehicle">Vehicle</option>
+            </select>
+            <label for = "protocol_flow">Protocol Flow</label>
+            <select id="key_role" name = "key_role">
+                <option value = "None">Short Term</option>
+                <option value = "RS256">Long Term: RS256</option>
+                <option value = "ES256">Long Term: ES256</option>
+            </select> 
+            <button onclick="setClientData()" class="arrow_button"><span>Set</span></button>
+        </div>
+
+        <div id = "request_options" class="vert_select_list row">
+            <p class="subject">Request</p>
+            <div class = "column" style="width: 15%;">
+                <label for = "protocol">Protocol</label>
+                <br><select id = "protocol" name = "protocol">
+                    <option value = "HTTP">HTTP</option>
+                    <option value = "WS">WebSocket</option>
+                    <option value = "MQTT">MQTT</option>
+                </select>
+                <label for = "method">Method</label>
+                <br><select id = "method" name = "method"></select>
+                <div style="font-size: 10px;"> Note: Only Some Methods Supported at the moment </div>
+                <br>
+                <input type="checkbox" id="log_switch" checked> <span>Logs</span>
+                <input type="checkbox" id="at_switch" checked> <span>AT</span>
+                <br>
+                <button onclick="sendVissReq()" class="arrow_button"><span>Send</span></button>  
+            </div>
+
+            <div class="column" id = "url_col" style="width: 15%;">
+                <div id = "req_url">
+                    <label for = "req0">Request URL</label>
+                    <br><select id = "req0" name = "token">
+                        <option value = "">-</option>
                     </select>
-                    <label for = "protocol">Protocol</label>
-                    <br><select id = "protocol" name = "protocol">
-                        <option value = "HTTP">HTTP</option>
-                        <option value = "WS">WebSocket</option>
-                        <option value = "MQTT">MQTT</option>
-                    </select>
-                    <label for = "method">Method</label>
-                    <br><select id = "method" name = "method"></select>
-                    <div style="font-size: 10px;"> Note: Only Few Methods Supported at the moment </div>
-                    <br>
-                    <input type="checkbox" id="log_switch" checked> <span>Logs</span>
-                    <input type="checkbox" id="at_switch" checked> <span>AT</span>
-                    <br>
-                    <button onclick="sendVissReq()" class="arrow_button"><span>Send</span></button>  
-                </div>
-                <div class="column" id = "url_col" style="width: 15%;">
-                    <div id = "req_url">
-                        <label for = "req0">Request URL</label>
-                        <br><select id = "req0" name = "token">
-                            <option value = "">-</option>
-                        </select>
-                        <select id = "req1" name = "token" style="display: none;"></select>
-                        <select id = "req2" name = "token" style="display: none;"></select>
-                        <select id = "req3" name = "token" style="display: none;"></select>
-                        <select id = "req4" name = "token" style="display: none;"></select>
-                        <select id = "req5" name = "token" style="display: none;"></select>
-                        <select id = "req6" name = "token" style="display: none;"></select>
-                        <select id = "req7" name = "token" style="display: none;"></select>
-                        <select id = "req8" name = "token" style="display: none;"></select>
-                        <select id = "req9" name = "token" style="display: none;"></select>
-                        <select id = "req10" name = "token" style="display: none;"></select>
-                        <select id = "req11" name = "token" style="display: none;"></select>
-                        <select id = "req12" name = "token" style="display: none;"></select>
-                        <select id = "req13" name = "token" style="display: none;"></select>
-                        <select id = "req14" name = "token" style="display: none;"></select>
-                        <select id = "req15" name = "token" style="display: none;"></select>
-                    </div> 
-                    <div id = "update_div" style="display: none;">
-                        <label for = "update_input">Update Value</label>
-                        <input type = "text" id = "update_input">
-                    </div>           
-                </div>
-                <div class="column" id = "subs_id_col" style="width: 15%; display: none;">
-                    <label for = "sub_id">Subscription ID</label>
-                    <input type = "text" id = "sub_id">
-                </div>
-                
-                <div class = "column" id = "filter_col" style="width: 15%; display: none;">
-                    <label for = "filters">Filters</label>
-                    <dl id = "filters">
-                        <dt id = "timebased_div">
-                            <label for = "timebased_filt">Timebased</label>
-                            <input type="radio" id="timebased_filt" name = "filt_radio" unchecked>
-                            <div id = "timebased_filt_input" style="display: none;">
-                                <label for = "timebased_filt_period">Period (ms): </label>
-                                <input type = "text" id = "timebased_filt_period" placeholder="time between updates" >
-                            </div>
-                        </dt>
-                        <dt id = "path_div">
-                            <label for = "paths_filt">Paths</label> 
-                            <input type="radio" id = "paths_filt" name = "filt_radio" unchecked>
-                            <div id = "paths_filt_input" style="display: none;">
-                                <input type = "text" id = "path_filt_1" placeholder="path1">
-                                <input type = "text" id = "path_filt_2" placeholder="path2">
-                                <input type = "text" id = "path_filt_3" placeholder="path3">
-                            </div>
-                        </dt>
-                        <dt id = "change_div">
-                            <label for = "change_filt">Change</label>
-                            <input type="radio" id="change_filt" name = "filt_radio" unchecked>
-                            <div id = "change_filt_input" style="display: none;">
-                                <label for = "change_filt_operator">Operator:</label>
-                                <select id = "change_filt_operator" name = "change_filt_operator">
-                                    <option value = "gt">Greather than (false -> true)</option>
-                                    <option value = "lt">Lower than (true -> false)</option>
-                                    <option value = "ne">Not equal (both)</option>
-                                    <option value = "gte">Greather than or equal</option>
-                                    <option value = "lte">Lower than or equal</option>
-                                </select>
-                                <label for = "change_filt_difference">Difference: </label>
-                                <input type = "text" id = "change_filt_difference">
-                            </div>
-                        </dt>
-                        <dt id = "none_div">
-                            <label for = "no_filt">None</label>
-                            <input type = "radio" id = "no_filt" name = "filt_radio" checked>
-                        </dt>
-                    </dl>                    
-                </div>
-                <div class="column" id="at_col" style="width: 20%;">
-                    <div class="data_box_bordered">
-                        <p class="subject" id = "Token" style="margin: 5px; padding:0px; padding-bottom:2px">Access Token</p>
-                        <pre id = "TokenContent" class="data"></pre>
-                    </div>
-                </div>
-                <div class="column" style = "width: 50%">
-                    <div class="data_box_bordered" id="logs">
-                        <p class="subject">Logs 
-                            <button onclick="logReset()">Reset</button> 
-                        </p> 
-                        <p id="log_data" class="data" style="display: block; overflow-y: scroll; height: 200px;"></p>
-                    </div> 
-                </div>
+                    <select id = "req1" name = "token" style="display: none;"></select>
+                    <select id = "req2" name = "token" style="display: none;"></select>
+                    <select id = "req3" name = "token" style="display: none;"></select>
+                    <select id = "req4" name = "token" style="display: none;"></select>
+                    <select id = "req5" name = "token" style="display: none;"></select>
+                    <select id = "req6" name = "token" style="display: none;"></select>
+                    <select id = "req7" name = "token" style="display: none;"></select>
+                    <select id = "req8" name = "token" style="display: none;"></select>
+                    <select id = "req9" name = "token" style="display: none;"></select>
+                    <select id = "req10" name = "token" style="display: none;"></select>
+                    <select id = "req11" name = "token" style="display: none;"></select>
+                    <select id = "req12" name = "token" style="display: none;"></select>
+                    <select id = "req13" name = "token" style="display: none;"></select>
+                    <select id = "req14" name = "token" style="display: none;"></select>
+                    <select id = "req15" name = "token" style="display: none;"></select>
+                </div> 
+                <div id = "update_div" style="display: none;">
+                    <label for = "update_input">Update Value</label>
+                    <input type = "text" id = "update_input">
+                </div>           
+            </div>
+
+            <div class="column" id = "subs_id_col" style="width: 15%; display: none;">
+                <label for = "sub_id">Subscription ID</label>
+                <input type = "text" id = "sub_id">
+            </div>
+            
+            <div class = "column" id = "filter_col" style="width: 15%; display: none;">
+                <label for = "filters">Filters</label>
+                <dl id = "filters">
+                    <dt id = "timebased_div">
+                        <label for = "timebased_filt">Timebased</label>
+                        <input type="radio" id="timebased_filt" name = "filt_radio" unchecked>
+                        <div id = "timebased_filt_input" style="display: none;">
+                            <label for = "timebased_filt_period">Period (ms): </label>
+                            <input type = "text" id = "timebased_filt_period" placeholder="time between updates" >
+                        </div>
+                    </dt>
+                    <dt id = "path_div">
+                        <label for = "paths_filt">Paths</label> 
+                        <input type="radio" id = "paths_filt" name = "filt_radio" unchecked>
+                        <div id = "paths_filt_input" style="display: none;">
+                            <input type = "text" id = "path_filt_1" placeholder="path1">
+                            <input type = "text" id = "path_filt_2" placeholder="path2">
+                            <input type = "text" id = "path_filt_3" placeholder="path3">
+                        </div>
+                    </dt>
+                    <dt id = "change_div">
+                        <label for = "change_filt">Change</label>
+                        <input type="radio" id="change_filt" name = "filt_radio" unchecked>
+                        <div id = "change_filt_input" style="display: none;">
+                            <label for = "change_filt_operator">Operator:</label>
+                            <select id = "change_filt_operator" name = "change_filt_operator">
+                                <option value = "gt">Greather than (false -> true)</option>
+                                <option value = "lt">Lower than (true -> false)</option>
+                                <option value = "ne">Not equal (both)</option>
+                                <option value = "gte">Greather than or equal</option>
+                                <option value = "lte">Lower than or equal</option>
+                            </select>
+                            <label for = "change_filt_difference">Difference: </label>
+                            <input type = "text" id = "change_filt_difference">
+                        </div>
+                    </dt>
+                    <dt id = "none_div">
+                        <label for = "no_filt">None</label>
+                        <input type = "radio" id = "no_filt" name = "filt_radio" checked>
+                    </dt>
+                </dl>                    
+            </div>
+
+            <div class="column" style = "width: 50%; float: right" >
+                <div class="data_box_bordered" id="logs">
+                    <p class="subject">Logs 
+                        <button onclick="logReset()">Reset</button> 
+                    </p> 
+                    <p id="log_data" class="data" style="display: block; overflow-y: scroll; height: 200px;"></p>
+                </div> 
             </div>
         </div> 
-        <div class = "message_list" id = "message_list">
+
+        <div class = "message_list row" id = "message_list">
             <p class = "subject">Response List</p>
             <div class = "messages" id = "messages"></div>
         </div>
-        
+
         
         <!---
 
@@ -145,46 +171,105 @@
 
         -->
 
-
-        <!-- Initialization-->
+        <!-- Client Data-->
         <script>
-        // Fills the Selector for the Access Grant Tokens Avaliable
-            var atList; // LIST OF THE ATS AVALIABLE
-            atFiller();
-            function atFiller(){
-                let atPromList = getAtList().then(function(atPromList){    // Calls a function that returns all the tokens avaliable
-                    atPromList.forEach(at => {    // If all ok, iterates the list and shows the ids in the select
-                        document.getElementById("token").insertAdjacentHTML("beforeend", '<option value = "' + at.tokenId + '">' + 
-                            at.tokenId + '</option>');
-                    });
-                    atList = atPromList;
-                }, function(atPromList){   // Error getting list
-                    window.alert("Error getting AT list");
-                    logStatus("Error", "Error getting AT List: " + atPromList, "console");
-                })
-            }
-
-        //  Shows AT depending on the AT selected 
-            document.getElementById("token").addEventListener("change", showAT);
-            function showAT(){
-                document.getElementById("TokenContent");
-                let tokenId = document.getElementById("token").value; // ID of the token requested
-                if (tokenId == "None" || atList == undefined){ // If no at is selected or no agtlist is avaliable
-                    document.getElementById("TokenContent").innerHTML = "";
-                } else {   // A token has been selected
-                    const hasId = (element) => element.tokenId == tokenId;  // Function to use in findIndex 
-                    let at = atList.find(hasId); // Searchs the array to find the token with the id selected
-                    console.log(at)
-                    console.log(JSON.stringify(at.header, null, "  <br>")  + JSON.stringify(at.payload, null, "  "))
-                    document.getElementById("TokenContent").innerHTML = JSON.stringify(at.header, null, " ") + "<br>" + JSON.stringify(at.payload, null, " ");
-                }
+            function setClientData(){
+                clientUser = document.getElementById("user_role").value;
+                clientApp = document.getElementById("app_role").value;
+                clientDevice = document.getElementById("dev_role").value;
+                clientContext = clientUser + "+" + clientApp + "+" + clientDevice;
+                clientKey = document.getElementById("key_role").value;
+                // Gets the Access Token List for the context
+                initContextAtList(clientContext);
+                initContextAgtList(clientContext);
+                initClientPurposeList();
+                initPath();
             }
         </script>
 
-
-        <!-- Dynamic items in page-->
+        <!-- Print the path giving information about the possibilities with the signals -->
         <script>
-            // Shows the methods avaliable depending on the protocol selected
+        function initPath(){
+            document.getElementById("req0").innerHTML = '<option value = "">-</option>';
+            for (let key in dataTree){
+                document.getElementById("req0").insertAdjacentHTML("beforeend", '<option value = "' + key + '">' + key + '</option>');
+            }
+            for (let i = 1; i <= 15; i++){ // Deletes all paths after the first
+                document.getElementById("req"+i).style.display = "none";
+                document.getElementById("req"+i).innerHTML = "";
+                document.getElementById("req"+i).value = "";
+            }
+        }
+
+        // Adds listener for a path change
+        let requests = document.getElementById("req_url").querySelectorAll('select');
+        for (i of requests) {   // For each one of the path selects
+                i.addEventListener("change", function() {
+                reqUpdate(this.id);     // Adds the method "reqUpdate", with the id associated
+                });
+        }
+        // Fills the content of the Request Path while the user selects different values
+        function reqUpdate(UpdatingId){
+            console.log(reqUpdate)
+            id = parseInt(UpdatingId.split("req")[1], 10);   // Gets the number of the iterator needed to fill
+
+            for (let i = id + 1; i <= 15; i++){ // Deletes all claims depending the new value to fill them later
+                document.getElementById("req"+i).style.display = "none";
+                document.getElementById("req"+i).innerHTML = "";
+                document.getElementById("req"+i).value = "";
+            }
+            
+            if (document.getElementById(UpdatingId).value != ""){   // If the value selected is not "-", if it is "-", nothing more is showed
+                
+                let nextClaims = dataTree; // Get next claims from dataTree
+                let signalPath = "";    // Path to the signal
+                for (let i = 0; i <= id; i++){  // Iterates the data tree to get the next claims needed
+                    nextClaims = nextClaims[document.getElementById("req"+i).value];
+                    signalPath += document.getElementById("req"+i).value + "."; 
+                }
+
+                selecttoFill = document.getElementById("req"+(id+1)) // Fills the next select
+                if ((nextClaims != undefined)){ //If there are other claims to add (is a parent node)
+                    let signals = [[],[],[]];   // Stores the signals in an array depending on the type (contained in at, in purposelist or neither)
+                    selecttoFill.style.display = "block";
+                    for (let key in nextClaims){
+                        // First, needs to get the signal path to check if is avaliable
+                        let signalPathComplete = signalPath + key;
+                        let option = '<option value = "' + key + '">' + key + '</option>'
+                        if (isSignalinAtNoTrust(signalPathComplete)){
+                            signals[0].push(option);
+                        } else if (isSignalinPurposeListNoTrust(signalPathComplete)){
+                            signals[1].push(option);
+                        } else {
+                            signals[2].push(option);
+                        }
+                    }
+                    // Fills the select using optgroup
+                    selecttoFill.insertAdjacentHTML("beforeend", '<option value = "">' + "-" + '</option>');
+                    selecttoFill.insertAdjacentHTML("beforeend", '<optgroup label="Avaliable using AT" class = "green_text">');
+                    for (let opt of signals[0]){
+                        selecttoFill.insertAdjacentHTML("beforeend", opt);
+                    }
+                    selecttoFill.insertAdjacentHTML("beforeend", '</optgroup>');
+                    selecttoFill.insertAdjacentHTML("beforeend", '<optgroup label="Avaliable requesting AT" class = "yellow_text">');
+                    for (let opt of signals[1]){
+                        selecttoFill.insertAdjacentHTML("beforeend", opt);
+                    }
+                    selecttoFill.insertAdjacentHTML("beforeend", '</optgroup>');
+                    selecttoFill.insertAdjacentHTML("beforeend", '<optgroup label="Not avaliable for you" class = "red_text">');
+                    for (let opt of signals[2]){
+                        selecttoFill.insertAdjacentHTML("beforeend", opt);
+                    }
+                    selecttoFill.insertAdjacentHTML("beforeend", '</optgroup>');
+                }
+            }
+
+        }
+        </script>
+
+        <!-- Visual scripts for UI-->
+        <script>
+            // Fills the method select depending on the protocol selected
             document.getElementById("protocol").addEventListener("change", methodFiller);
             methodFiller(); 
             function methodFiller(){    // Fills the Methods options depending on the selection
@@ -216,56 +301,7 @@
                 }
             }
 
-            // Initializes the Path using the vsspathlist.json
-            var dataTree = treeInit()
-            function treeInit(){    
-                let xhr = new XMLHttpRequest();
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState == 4 && xhr.status == 200) {
-                        let helptree = JSON.parse(xhr.responseText)
-                        dataTree = pathListJson(JSON.stringify(helptree["LeafPaths"]))
-                        for (let key in dataTree){
-                            document.getElementById("req0").insertAdjacentHTML("beforeend", '<option value = "' + key + '">' + key + '</option>');
-                        }
-                    }
-                }
-                xhr.open('GET', '/specs/vsspathlist.json');
-                xhr.send();
-            }
-
-            // Adds listener for the path filler 
-            let requests = document.getElementById("req_url").querySelectorAll('select');
-            for (i of requests) {
-                    i.addEventListener("change", function() {
-                    reqUpdate(this.id); 
-                }   );
-            }
-            // Fills the content of the Request Path while the user selects different values
-            function reqUpdate(UpdatingId){
-                let id = UpdatingId.split("req");
-                id = parseInt(id[1], 10);
-                for (let i = id + 1; i <= 15; i++){ // Deletes all claims dependent of it
-                    document.getElementById("req"+i).style.display = "none";
-                    document.getElementById("req"+i).innerHTML = "";
-                    document.getElementById("req"+i).value = "";
-                }
-                
-                let nextClaims = dataTree; // Get next claims from dataTree
-                for (let i = 0; i <= id; i++){
-                    nextClaims = nextClaims[document.getElementById("req"+i).value];
-                }
-
-                seltoAdd = document.getElementById("req"+(id+1)) // Fills the next select
-                if ((nextClaims != undefined) && (document.getElementById("req"+id).value != "")){ //If it exist and the value 
-                    seltoAdd.style.display = "block";
-                    for (let key in nextClaims){
-                        seltoAdd.insertAdjacentHTML("afterbegin", '<option value = "' + key + '">' + key + '</option>');
-                    }
-                    seltoAdd.insertAdjacentHTML("afterbegin", '<option value = "">' + "-" + '</option>');
-                }
-            }
-            
-            // Dynamic filter content
+            // Adds event listener to show filters if requested
             const filter_typ_list = document.getElementById("filters").querySelectorAll('input[type="radio"]');
             for (i of filter_typ_list) {
                     i.addEventListener("change", function() {
@@ -279,26 +315,7 @@
                 }   );
             }
 
-            function showId(id){
-                document.getElementById(id).style.display = "block";
-            }
-            function hideId(id){
-                document.getElementById(id).style.display = "none";
-            }
-            function checkId(id, checked){  // Checks an input, triggering the onchange event
-                document.getElementById(id).checked = checked;
-                let evnt = document.createEvent("HTMLEvents");
-                evnt.initEvent("change", false, true);
-                document.getElementById(id).dispatchEvent(evnt);
-            }
-            function triggerOnChange(id){
-                let evnt = document.createEvent("HTMLEvents");
-                evnt.initEvent("change", false, true)
-                document.getElementById(id).dispatchEvent(evnt);
-            }
-
-
-            // Used for showing request claims to fill after selecting the method
+            // Shows the possible parameters to change after choosing a request method
             document.getElementById("method").addEventListener("change", function() {
                 hideId("url_col");
                 hideId("update_div");
@@ -350,15 +367,17 @@
                         window.alert("Method "+ document.getElementById("method").value +" NOT avaliable");
                 }
             })
-
         </script>
+
 
         <!-- Request maker-->
         <script>  
-            // Obtains both HTTP and WebSockets urls from clientscripts file 
+            // Obtains both HTTP, WebSockets, AGT and A urls from clientscripts file 
             const httpURL = (urlMap.tls ? "https://" : "http://") + urlMap.VissIp + ":" + urlMap.VissHttpPort;
             const wsURL = (urlMap.tls ? "wss://" : "ws://") + urlMap.VissIp + ":" + urlMap.VissWsPort;  
-            
+            const AgtUrl = (urlMap.tls ? "https://": "http://") + urlMap.AgtIp + ":" + urlMap.AgtPort + "/agts";
+            const AtUrl = (urlMap.tls ? "https://" : "http://") + urlMap.AtIp + ":" + urlMap.AtPort + "/ats"
+
             // Initializes the connection with the server using WS 
             var socket = initializeWebSocket()  // SOCKET can be used to send data
             function initializeWebSocket(){
@@ -382,11 +401,13 @@
                 return socket;
             }
 
-            // Envía un mensaje dependiendo del protocolo usado
-            try {
-                function sendVissReq(){
-                    let path = generatePath();  // Generates the Request Path
-                    let selectedAt = getAt();        // Obtains the access token
+            // Se lanza al pulsar el boton send, envia la request segun el protocol usado
+            
+            async function sendVissReq(){
+                let path = generatePath();
+                let accessToken = document.getElementById("at_switch").checked ? await getAtforPath(path):undefined;
+                
+                try{
                     switch (document.getElementById("protocol").value){
                     // HTTP REQUESTS
                         case "HTTP":
@@ -401,20 +422,24 @@
                                     }
                                 }
                             }
-
-                            let toPretty = { }   // Var used to show the request
-                            let httpReqUrl; // URL including the path
-                            
+                            let toPretty = {    // To pretty write the request
+                                action: ""
+                            }
+                            let httpReqUrl;
                             switch (document.getElementById("method").value){
                                 case "Authorized Read":
                                 case "Search Read":
-                                    filter = generateFilter();
-                                    httpReqUrl = httpURL+path+filter;
+                                    let filter = generateFilter();
+                                    httpReqUrl = httpURL + path + filter;
                                     logStatus("Info", "Sending GET Request:" + httpReqUrl)
                                     xhttpreq.open("GET", httpReqUrl, true);
-                                    selectedAt != "" ? xhttpreq.setRequestHeader("Authorization", "Bearer " + selectedAt) : null;
+                                    accessToken == undefined ? xhttpreq.setRequestHeader("Authorization", "Bearer "+accessToken) : null; 
+                                        // Pretty print the request
                                         toPretty.action = "get";
-                                        filter!="" ? toPretty.filter = JSON.parse(filter.replace("?filter=","")):null; 
+                                        if (filter != ""){
+                                            let filt = filter.replace("?filter=", "");
+                                            toPretty.filter = JSON.parse(filt);
+                                        }
                                         toPretty.path = path;
                                         prettyRequestWriter(toPretty, "HTTP");
                                     xhttpreq.send();
@@ -423,12 +448,12 @@
                                     httpReqUrl = httpURL+path;
                                     let httpReqBody = "{\"value\": \"" + document.getElementById("update_input").value + "\"}";
                                     logStatus("Info", "Sending POST Request:" + httpReqUrl + "; Body: " + httpReqBody);
+                                    accessToken == undefined ? xhttpreq.setRequestHeader("Authorization", "Bearer "+accessToken) : null;
                                     xhttpreq.open("POST", httpReqUrl, true);
-                                    selectedAt != "" ? xhttpreq.setRequestHeader("Authorization", "Bearer " + selectedAt) : null;
-                                        toPretty.action = "post";
-                                        toPretty.path = path;
-                                        toPretty.value = document.getElementById("update_input").value;
-                                        prettyRequestWriter(toPretty, "HTTP");
+                                    toPretty.action = "post";
+                                    toPretty.path = path;
+                                    toPretty.value = document.getElementById("update_input").value;
+                                    prettyRequestWriter(toPretty, "HTTP");
                                     xhttpreq.send(httpReqBody);
                                     break;
                                 default:
@@ -444,10 +469,9 @@
                             var params = {
                                 action: "",
                                 path: generatePath(),
-                                //"authorization": 
+                                "authorization": accessToken,
                                 //filter: generateFilter(),
-                                requestId: (Math.trunc(Math.random()*65536)).toString(),
-                                authorization: selectedAt
+                                requestId: (Math.trunc(Math.random()*65536)).toString()
                             }
                             switch (document.getElementById("method").value){
                                 case "Authorized Read":
@@ -481,9 +505,10 @@
                             socket.send(reqContent);
                             break;
                     }
+                } catch (err){
+                    logStatus("Error", err.message);
+                    console.log(err)
                 }
-            } catch (err){
-                logStatus("Error", err.message);
             }
 
             // Shows the pretty request
@@ -500,7 +525,6 @@
                 switch (request.action){
                     case "get":
                     case "subscribe":
-                        console.log(request)
                         if (request.filter != undefined && request.filter.value.length != undefined){
                             toWrite += generateTableRow(request.path, "Filter: " + request.filter.type + ": "  + JSON.stringify(request.filter.value[0]), "")
                             for (let cont = 1; cont < request.filter.value.length; cont++){
@@ -703,17 +727,7 @@
                             return null;
                     }
                 }
-            }
-            // Returns the access token (if selected)
-            function getAt(){
-                if (document.getElementById("token").value == "None"){ // No at selected
-                    return ""
-                } else{
-                    let atselected = atList.find(element => element.tokenId == document.getElementById("token").value);
-                    return atselected.encoded;
-                }
-            }
-            
+            }        
         </script>
     </body>
 </html>
