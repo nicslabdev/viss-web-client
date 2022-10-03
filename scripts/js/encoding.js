@@ -1,4 +1,4 @@
-function jsonRecursiveEncoding(claim, value, encoded){
+  function jsonRecursiveEncoding(claim, value, encoded){
     let data
     if ((claim == "") || (value == "")){
         return encoded
@@ -12,7 +12,7 @@ function jsonRecursiveEncoding(claim, value, encoded){
     return data
 }
 
-function jsonPrettify(jsonraw, indexation){
+  function jsonPrettify(jsonraw, indexation){
     let jsonObj = JSON.parse(jsonraw)
     if (indexation == undefined){
         indexation = "\t"
@@ -20,7 +20,7 @@ function jsonPrettify(jsonraw, indexation){
     return JSON.stringify(jsonObj, null, indexation)
 }
 
-function jwtPretty(jwtraw, indexation){
+  function jwtPretty(jwtraw, indexation){
     let jwtsplit
     jwtsplit = jwtraw.split(".",2)
     if (jwtsplit[0] == jwtraw){
@@ -31,7 +31,8 @@ function jwtPretty(jwtraw, indexation){
     return [jsonPrettify(header, indexation), jsonPrettify(payload, indexation)]
 }
 
-function pathListJson(data){
+// Converts from datatree format to json object 
+  function pathListJson(data){
     let jsData = JSON.parse(data);
     let pathlist = {};
     let help = {};
@@ -48,7 +49,7 @@ function pathListJson(data){
     return pathlist;
 }
 
-function deepmerge(foo, bar) {
+  function deepmerge(foo, bar) {
     var merged = {};
     for (var each in bar) {
       if (foo.hasOwnProperty(each) && bar.hasOwnProperty(each)) {
@@ -67,5 +68,54 @@ function deepmerge(foo, bar) {
       }
     }
     return merged;
-  }
+}
 
+
+//Convert an ArrayBuffer into a string
+function ab2str(buf) {
+  return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+// Convert string into Array Buffer
+function str2ab(str) {
+  const buf = new ArrayBuffer(str.length);
+  const bufView = new Uint8Array(buf);
+  for (let i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
+}
+
+// Prompts the user to open file, then returns its content
+function pickReadFileAsync() {
+  return new Promise( function (resolve){
+      var elem = document.createElement('input');
+      elem.style.display = 'none';
+      elem.setAttribute('type', 'file');
+      document.body.appendChild(elem);
+      elem.onchange =  function  (){
+          const reader = new FileReader();
+          reader.onload =  function  () {
+              resolve(reader.result);
+              document.body.removeChild(elem);
+          };
+          reader.readAsBinaryString(elem.files[0]);
+      }
+      elem.click();
+  })
+}
+
+// Base 64 URL Safe encoding
+  function strEncodeBase64URLSafe(toencode){
+  let notsafe = window.btoa(toencode);
+  let safe = notsafe.replaceAll("=", "");
+  safe = safe.replaceAll("+", "-");
+  safe = safe.replaceAll("/", "_");
+  return safe;
+}
+
+// Base 64 URL Safe decoding
+function strDecodeBase64URLSafe(todecode){
+  todecode = todecode.replaceAll("-", "+");
+  todecode = todecode.replaceAll("_", "/");
+  return window.atob(todecode);
+}

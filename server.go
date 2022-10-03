@@ -18,71 +18,39 @@ package main
 
 import (
 	"flag"
-	"io/fs"
 	"log"
 	"net/http"
-	"strings"
 )
 
 var (
-	port = flag.String("port", ":8080", "listen address")
+	port = flag.String("port", ":8008", "listen address")
 	sec  = flag.String("sec", "no", "use TLS in HTTP or not")
 )
 
+// ServeMux for the HTTP Server
+var servMux = http.NewServeMux()
+
+// HTTP Server
 func runHTTP() {
+	//fsystem := noDotFileSystem{http.Dir(".")}
+	//http.Handle("/", http.FileServer(fsystem))
 	log.Printf("HTTP server listening on %s...", *port)
-	log.Fatal(http.ListenAndServe(*port, http.FileServer(http.Dir("."))))
+	log.Fatal(http.ListenAndServe(*port, servMux))
 }
 
+// HTTPS Server
 func runHTTPS() {
 	log.Printf("HTTPS server listening on %s...", *port)
-	log.Fatal(http.ListenAndServeTLS(*port, "", "", nil))
+	log.Fatal(http.ListenAndServeTLS(*port, ".tls/cert.pem", ".tls/serv_key.key", servMux))
 }
 
-func containsDotFile(name string) bool {
-	parts := strings.Split(name, "/")
-	for _, part := range parts {
-		if strings.HasPrefix(part, ".") {
-			return true
-		}
-	}
-	return false
-}
-
-type dotFileHidingFile struct {
-	http.File
-}
-
-func (f dotFileHidingFile) Readdir(n int) (fis []fs.FileInfo, err error) {
-	files, err := f.File.Readdir(n)
-	for _, file := range files { // Filters out the dot files
-		if !strings.HasPrefix(file.Name(), ".") {
-			fis = append(fis, file)
-		}
-	}
-	return
-}
-
-type dotFileHidingFileSystem struct {
-	http.FileSystem
-}
-
-func (fsys dotFileHidingFileSystem) Open(name string) (http.File, error) {
-	if containsDotFile(name) { // If dot file, return 403 response
-		return nil, fs.ErrPermission
-	}
-
-	file, err := fsys.FileSystem.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	return dotFileHidingFile{file}, err
-}
+// Logs the requests
 
 func main() {
+	servMux.Handle("/", http.FileServer(http.Dir(".")))
+	servMux.Handle("/.git/", http.NotFoundHandler())
+	servMux.Handle("/.tls/", http.NotFoundHandler())
 	flag.Parse()
-	fsys := dotFileHidingFileSystem{http.Dir(".")}
-	http.Handle("/", http.FileServer(fsys))
 	if *sec == "no" {
 		runHTTP()
 	} else if *sec == "yes" {

@@ -1,0 +1,91 @@
+body {
+  margin: 0;
+  font-family: "Lato", sans-serif;
+}
+
+.code {
+    color: darkgray;
+    font-family: 'Courier New', Courier, monospace ;
+}
+
+input {
+  padding: 4px;
+  font-size: 16px;
+  border-width: 1px;
+  border-color: #00008b;
+  background-color: #FFFFFF;
+  color: #000000;
+  border-style: solid;
+  border-radius: 0px;
+  box-shadow: 0px 0px 5px rgba(0,0,139,.75);
+  text-shadow: 1px 0px 5px rgba(66,66,66,.46);
+  margin: 2px;
+}
+
+.sidebar {
+  margin: 0;
+  padding: 0;
+  width: 200px;
+  background-color: #f1f1f1;
+  position: fixed;
+  height: 100%;
+  overflow: auto;
+}
+
+.sidebar a {
+  display: block;
+  color: black;
+  padding: 16px;
+  text-decoration: none;
+}
+ 
+.sidebar a.active {
+  background-color: #00008b;
+  color: white;
+}
+
+.sidebar a:hover:not(.active) {
+  background-color: #555;
+  color: white;
+}
+
+div.content {
+  margin-left: 200px;
+  padding: 1px 16px;
+  height: 1000px;
+}
+
+.mgrbutton {
+  font-family: arial;
+  color: #FFFFFF !important;
+  font-size: 11px;
+  text-shadow: 0px 0px 2px #FFFFFF;
+  box-shadow: 1px 1px 1px #0000CF;
+  padding: 10px 25px;
+  margin-bottom: 10px;
+  border-radius: 0px;
+  border: 0px solid #3866A3;
+  background: #00008B;
+}
+.mgrbutton:hover {
+  color: #FFFFFF !important;
+  background: #00008B;
+  background: linear-gradient(to top, #00008B, #0000B8);
+}
+
+@media screen and (max-width: 700px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  .sidebar a {float: left;}
+  div.content {margin-left: 0;}
+}
+
+@media screen and (max-width: 400px) {
+  .sidebar a {
+    text-align: center;
+    float: none;
+  }
+}
