@@ -155,17 +155,17 @@ function checkPurposeSignal(purpose, signal){
 // If no AT is avaliable / is expired, a new AT is requested using an AGT.
 // If no AGT is avaliable, a new AGT is requested
 function getAtforPath(path){
-    return new Promise(function(resolve,reject){
+    return new Promise(async function(resolve,reject){
         let accessGrantToken = null;
         let purposesforPath = getPurposesContainingSignalforContext(path.replace("/", "").replaceAll("/",".")); // Get the purposes containing that path
         if (purposesforPath.length == 0){
             reject("No purpose for that path avaliable");
             return;
         }
-        for (purpose in purposesforPath){  
-            for (let atIndex in filteredAtList){ // Compares the access token purposes with the purposes in the purpose list obtained
-                if (purpose.short == filteredAtList[atIndex].payload.scp){ // If the at works for that purpose
-                    resolve(filteredAtList[atIndex]);
+        for (purpose of purposesforPath){  
+            for (let filteredAt of filteredAtList){ // Compares the access token purposes with the purposes in the purpose list obtained
+                if (purpose.short == filteredAt.payload.scp){ // If the at works for that purpose
+                    resolve(filteredAt.encoded);
                     return;
                 }
             }
@@ -191,12 +191,19 @@ function getAtforPath(path){
                 }
             }
             agtreq.open("POST", AgtUrl, false); // Not asynchronous AGT request
-            if (clientKey != "None"){
-                async function getPop(clientKey){await generatePop(clientKey)};
-                agtreq.setRequestHeader("PoP", getPop());
+            let requestContent = {
+                context: clientContext,
+                proof: "ABC",
+                vin: undefined,
+                key: undefined
             }
-            agtreq.send(JSON.stringify({context: clientContext, proof:"ABC"})) // vin.........
-        } else {
+            if (clientKey != "None"){
+                let pop = await generatePop(clientKey, "vissv2/agts");
+                agtreq.setRequestHeader("PoP", pop);
+                requestContent.key = await getPublicThumbprint(clientKey);
+            } 
+            agtreq.send(JSON.stringify(requestContent));
+        } else { // There is an AGT avaliable
             accessGrantToken = filteredAgtList[0].encoded;
         }
         // If no agt is avaliable, returns and rejects
@@ -207,11 +214,10 @@ function getAtforPath(path){
         
         // Request an AT using the AGT
         let atreq = new XMLHttpRequest();
-        async function getPop(clientKey){await generatePop(clientKey)};
         let atRequestContent = { 
             purpose: purposesforPath[0].short,      // Purpose is in a select
             token: accessGrantToken,
-            pop: clientKey=="None"?undefined:getPop(clientKey)
+            pop: clientKey=="None"?undefined:await generatePop(clientKey, "vissv2/ats")
         }
         atreq.onreadystatechange = function(){
             if (this.readyState == 4){
@@ -222,7 +228,9 @@ function getAtforPath(path){
                     if (at_resp.token == undefined){
                         reject("No AT was received: " + this.responseText);
                     } else{
+                        storeAt(at_resp.token);
                         resolve(at_resp.token);
+                        setClientData(); // If a new access token is issued, needs to initialize the token lists and signals avaliable
                     }
                 }
             }
@@ -232,6 +240,28 @@ function getAtforPath(path){
     })
 }
 
+// Checks ats and agts for a expired token, then deletes them from the list
+function removeExpiredTokens(){
+    let unixTime = Date.now() / 1000 + 5; // 5 seconds of upper margin
+
+    for (let i = 0; i < filteredAtList.length; i++){
+        if (filteredAtList[i].payload.exp < unixTime){
+            deleteAt(filteredAtList[i].tokenId);
+            filteredAtList.splice(i, 1);
+            i --;
+        }   
+    }
+
+    for (let i = 0; i < filteredAgtList.length; i++){
+        if (filteredAgtList[i].payload.exp < unixTime){
+            deleteAgt(filteredAgtList[i].tokenId);
+            filteredAgtList.splice(i, 1);
+            i --;
+        }   
+    }
+    initClientPurposeList();
+    initPath();
+}
 
 // Gets a parent or child node and checks if that parent node appears in an AT associated to the context
 // ONLY USE FOR DEMONSTRATION PURPOSES

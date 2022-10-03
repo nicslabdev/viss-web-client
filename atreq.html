@@ -164,8 +164,6 @@
                 } else {   // A token has been selected
                     const hasId = (element) => element.tokenId == tokenId;  // Function to use in findIndex 
                     let agt = agtList.find(hasId); // Searchs the array to find the token with the id selected
-                    console.log(agt);
-                    console.log(JSON.stringify(agt.header, null, "  ") + "<br>" + JSON.stringify(agt.payload, null, "  "))
                     document.getElementById("AgTokenContent").innerHTML = JSON.stringify(agt.header, null, "  ") + "<br>" + JSON.stringify(agt.payload, null, "  ");
                 }
             }

@@ -308,7 +308,7 @@ function checkKeyAsync(algorithm){
 }
 
 // Generates pop from data obtained from HTML code or uses defaults
-async function generatePop(algorithm){    
+async function generatePop(algorithm, aud){    
     const alg = (algorithm == undefined)? document.getElementById("sign_type").value : algorithm;
 	var header =  {
 		typ : "dpop+jwt",
@@ -316,7 +316,7 @@ async function generatePop(algorithm){
 		jwk : ""
 	}
 	var payload = {
-		aud : "",
+		aud : aud,
 		iat : "",
 		jti : crypto.randomUUID()
 	}
@@ -327,7 +327,7 @@ async function generatePop(algorithm){
     }
 
 	// There should an HTML element with id "pop_aud" to allow to set the audience of the token
-    if (document.getElementById("pop_aud")!= null){
+    if (document.getElementById("pop_aud")!= null && aud ==undefined) {
         payload.aud = document.getElementById("pop_aud").value;
     } 
 

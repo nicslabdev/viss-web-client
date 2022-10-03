@@ -10,6 +10,7 @@
 		<link rel="stylesheet" href="styles/general.css" type="text/css">
         <script src = "scripts/js/encoding.js"></script>
         <script src = "scripts/js/clientscripts.js"></script>
+        <script src = "scripts/js/clientcrypto.js"></script>
         <script src = "scripts/js/logger.js"></script>
         <script src = "scripts/js/encoding.js"></script>
         <script src = "scripts/js/tokenhandler.js"></script>
@@ -63,8 +64,9 @@
                 <br><select id = "method" name = "method"></select>
                 <div style="font-size: 10px;"> Note: Only Some Methods Supported at the moment </div>
                 <br>
+                <button onclick="removeExpiredTokens()" style="margin-bottom: 5px;"><span>Remove Expired Tokens</span></button>
                 <input type="checkbox" id="log_switch" checked> <span>Logs</span>
-                <input type="checkbox" id="at_switch" checked> <span>AT</span>
+                <input type="checkbox" id="at_switch" checked> <span>Send AT</span>
                 <br>
                 <button onclick="sendVissReq()" class="arrow_button"><span>Send</span></button>  
             </div>
@@ -251,7 +253,7 @@
                         selecttoFill.insertAdjacentHTML("beforeend", opt);
                     }
                     selecttoFill.insertAdjacentHTML("beforeend", '</optgroup>');
-                    selecttoFill.insertAdjacentHTML("beforeend", '<optgroup label="Avaliable requesting AT" class = "yellow_text">');
+                    selecttoFill.insertAdjacentHTML("beforeend", '<optgroup label="Avaliable requesting AT" class = "orange_text">');
                     for (let opt of signals[1]){
                         selecttoFill.insertAdjacentHTML("beforeend", opt);
                     }
@@ -314,6 +316,9 @@
                         }
                 }   );
             }
+
+            // Hides logs if requested
+            document.getElementById("log_switch").addEventListener("input", showLogs);
 
             // Shows the possible parameters to change after choosing a request method
             document.getElementById("method").addEventListener("change", function() {
@@ -404,6 +409,7 @@
             // Se lanza al pulsar el boton send, envia la request segun el protocol usado
             
             async function sendVissReq(){
+                //removeExpiredTokens();
                 let path = generatePath();
                 let accessToken = document.getElementById("at_switch").checked ? await getAtforPath(path):undefined;
                 
@@ -419,6 +425,7 @@
                                     } else{
                                         logStatus("Info", "HTTP Response received: "+this.responseText);
                                         prettyResponseWriter(this.responseText, "HTTP");
+                                        //removeExpiredTokens(); // After a request, all expired tokens are removed
                                     }
                                 }
                             }
@@ -433,7 +440,7 @@
                                     httpReqUrl = httpURL + path + filter;
                                     logStatus("Info", "Sending GET Request:" + httpReqUrl)
                                     xhttpreq.open("GET", httpReqUrl, true);
-                                    accessToken == undefined ? xhttpreq.setRequestHeader("Authorization", "Bearer "+accessToken) : null; 
+                                    accessToken != undefined ? xhttpreq.setRequestHeader("Authorization", "Bearer " + accessToken) : null; 
                                         // Pretty print the request
                                         toPretty.action = "get";
                                         if (filter != ""){
@@ -503,6 +510,7 @@
                             logStatus("Info", "Sending WS Subscribe Request to " + wsURL + ": " + reqContent);
                             prettyRequestWriter(params, "WebSockets");
                             socket.send(reqContent);
+                            //removeExpiredTokens(); // After a request, all expired tokens are removed
                             break;
                     }
                 } catch (err){

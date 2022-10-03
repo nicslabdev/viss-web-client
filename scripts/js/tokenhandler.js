@@ -98,17 +98,18 @@ function getAgtList(){
 
 function deleteAgt(id){
     dbrequest = window.indexedDB.open("TokenDB", 1);  // open db 
+    logStatus("Info", "Deleting Access Grant Token with ID: " + id, "console");
     dbrequest.onerror = function (event){
         logStatus("Info", "Can not delete AGT: " + event.value, "console");
     }
     dbrequest.onsuccess = function(){
-        var db = dbreq.result;// gets db
+        var db = dbrequest.result;// gets db
         var deleteRequest = db.transaction("AGTStorage", "readwrite").objectStore("AGTStorage").delete(id);
         deleteRequest.onsuccess(event => {
             logStatus("Info", "Access Grant Token with ID: " + id + " deleted successfully", "console");
         })
         deleteRequest.onerror(event => {
-            logStatus("Info", "Could not delete Access Grant Token with ID: " + id + ": " + event.result);
+            logStatus("Info", "Could not delete Access Grant Token with ID: " + id + ": " + event.result, "console");
         })
     }
 }
@@ -154,9 +155,11 @@ function storeAt(at, id) {
 // A promise is returned, that returns an array of extendedAts if resolved
 function getAtList(){
     return new Promise(function(resolve,reject){    
+        logStatus("Info", "Obtaining AT List from Token DB", "console");
         request = window.indexedDB.open("TokenDB", 1);  // Request to open the token db
         request.onerror = function (event) {
             reject(event);
+            logStatus("Error", "AT List could not be obtained: error in Token DB: " +event , "console");
         }
         request.onsuccess = function (event) {     // If db is avaliable
             var atList = [];   // Array containing the agts
@@ -170,10 +173,12 @@ function getAtList(){
                     atList.push(cursor.value);
                     cursor.continue();
                 } else{
+                    logStatus("Info", "AT List Obtained", "console");
                     resolve(atList);
                 }
             }
             cursor.onerror = function(event){
+                logStatus("Error", "AT List could not be obtained: " +event , "console");
                 reject(event)
             }
         }
@@ -181,19 +186,20 @@ function getAtList(){
 }
 
 function deleteAt(id){
+    logStatus("Info", "Deleting Access Token with ID: " + id, "console");
     dbrequest = window.indexedDB.open("TokenDB", 1);  // open db 
     dbrequest.onerror = function (event){
         logStatus("Info", "Can not delete AT: " + event.value, "console");
     }
     dbrequest.onsuccess = function(){
-        var db = dbreq.result;// gets db
+        var db = dbrequest.result;// gets db
         var deleteRequest = db.transaction("ATStorage", "readwrite").objectStore("ATStorage").delete(id);
-        deleteRequest.onsuccess(event => {
+        deleteRequest.onsuccess = function (event){
             logStatus("Info", "Access Token with ID: " + id + " deleted successfully", "console");
-        })
-        deleteRequest.onerror(event => {
+        }
+        deleteRequest.onerror = function (event){
             logStatus("Info", "Could not delete Access Token with ID: " + id + ": " + event.result);
-        })
+        }
     }
 }
 
