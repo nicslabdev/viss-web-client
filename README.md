@@ -17,7 +17,7 @@ The future configuration API for AGT Server and AT Server (still on implementati
 
 A basic file server based in GoLang is provided, that is compiled and runs in the background after running the script provided.
 
-TLS is supported and It is mandatory its use outside of the localhost environment. 
+TLS is supported and It is mandatory its use outside of the localhost environment. Server key and certificate must be stored in .tls/serv_key.key and .tls/cert.pem 
 WebCrypto API will not work if a non-secure context is being used. 
 The used browser must support <a href="https://caniuse.com/cryptography">WebCrytography</a> and <a href="https://caniuse.com/indexeddb">IndexedDB</a>. Most modern browsers support both APIs.
 
