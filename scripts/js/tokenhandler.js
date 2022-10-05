@@ -105,12 +105,12 @@ function deleteAgt(id){
     dbrequest.onsuccess = function(){
         var db = dbrequest.result;// gets db
         var deleteRequest = db.transaction("AGTStorage", "readwrite").objectStore("AGTStorage").delete(id);
-        deleteRequest.onsuccess(event => {
+        deleteRequest.onsuccess = function() {
             logStatus("Info", "Access Grant Token with ID: " + id + " deleted successfully", "console");
-        })
-        deleteRequest.onerror(event => {
+        }
+        deleteRequest.onerror = function(event){
             logStatus("Info", "Could not delete Access Grant Token with ID: " + id + ": " + event.result, "console");
-        })
+        }
     }
 }
 
