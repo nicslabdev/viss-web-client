@@ -1,3 +1,6 @@
+// KeyPairs are stored in the client indexedDB
+// Signature methods, pop generation and key related functions
+
 // Creates or initalizes the Database
 var clientDbRequest = window.indexedDB.open("ClientDB", 1);
 // Error management
