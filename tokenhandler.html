@@ -9,77 +9,107 @@
 		<link rel="stylesheet" href="styles/general.css" type="text/css">
 		<script src = "scripts/js/logger.js"></script>
 		<script src = "scripts/js/encoding.js"></script>
-		<script src = "scripts/js/clientcrypto.js"></script>
+		<script src = "scripts/js/tokenhandler.js">	</script>
 	</head>
 	<body>
 		<script src = "scripts/js/menu.js"></script>
-		<h1>MAIN PAGE</h1>
+		<h2>Token Management</h2>
 		
-		<h2>Key Management</h2>
+		<h3>Access Grant Tokens</h3>
+		<div id="agts" class="token_container">
+			
+
+		</div>
 		
-		<h3>RSA Key</h3>
-		<div class = "horiz_click_list" id = "rsa">
-			<button onclick = "generateClientKey('RSA');" class="normal_button" id = "genRsaButton">Generate New RSA Key</button>
-			<button onclick = "downloadPublicKey('RSA')" class="normal_button" id = "exportPublicRsaButton">Export Public Key (SPKI)</button>
-			<input type = "file" id = "importRSA" style="display: none;" accept=".pem">
-			<button onclick = "clickImport('RSA')" class="normal_button" id = "importRsaButton">Import Key (PKCS#8 format)</button>
-			<p id = "rsaData" class="gen">RSA Not Avaliable</p>
+		<h3 style="float: none;">Access Tokens</h3>
+		<div id="ats" class="token_container">
+			
 		</div>
 
-		<h3>ECDSA Key</h3>
-		<div class = "horiz_click_list" id = "ecdsa">
-			<button onclick = "generateClientKey('ECDSA');" class="normal_button" id = "genEcdsaButton">Generate New ECDSA Key</button>
-			<button onclick = "downloadPublicKey('ECDSA')" class="normal_button" id = "exportPublicEcdsaButton">Export Public Key (SPKI)</button>
-			<input type = "file" id = "importECDSA" onchange="handleImport(this.files, 'ECDSA')" style="display: none;" accept=".pem">
-			<button onclick = "clickImport('ECDSA')" class="normal_button" id = "importEcdsaButton">Import Key (PKCS#8 format)</button>
-			<p id = "ecdsaData" class ="gen">ECDSA Not Avaliable</p>
-		</div>
-		
-		<h2>IP Settings</h2>
-		<div class = "horiz_click_list" id = "serverURLS">
-			<div class ="title">AGT IP + PORT</div>
-			<input id = "agt_ip" type = "text" value = "localhost" placeholder="AGT Server IP" style="width:20%;">
-			<input id = "agt_port" type = "text" value = "7500" placeholder="AGT Server Port" style="width:10%;">
-			<div class = "title">AT IP + PORT </div>
-			<input id = "at_ip" type = "text" value = "localhost" placeholder="AT Server IP" style="width:20%;"> 
-			<input id = "at_port" type = "text" value = "8600" placeholder="AT Server Port" style="width:10%;">
-			<div class = "title">VISS IP + HTTP PORT + WS PORT </div>
-			<input id = "viss_ip" type = "text" value = "localhost" placeholder="VISS Server IP" style= "width:20%;">
-			<input id = "viss_http_port" type = "text" value = "8888" placeholder="VISS HTTP Port" style="width:10%;"> 
-			<input id = "viss_ws_port" type = "text" value = "8080" placeholder="VISS WS Port" style="width:10%;"> <br><br>
-			<button class = "small_button" onclick="setAddress()">Set</button>
-		</div>
-		<script src = "scripts/js/clientscripts.js"></script>
 		<script>
-			async function logKeyStatus(){
-				if (document.getElementById("rsaData") != null){
-					document.getElementById("rsaData").textContent = (await checkKeyAsync("RSA")) ? "RSA Avaliable" : "RSA Not Avaliable";
-				}
-				if (document.getElementById("ecdsaData") != null){
-					document.getElementById("ecdsaData").textContent = (await checkKeyAsync("ECDSA")) ? "ECDSA Avaliable" : "ECDSA Not Avaliable";
+			// Print the access grant tokens stored in indexed db in the html page
+			var atList;
+			var agtList;
+
+			printAGTs();
+			async function printAGTs(){
+				document.getElementById("agts").innerHTML = "";
+				agtList = await getAgtList();
+				for (var i = 0; i < agtList.length; i++) {
+					var agt = agtList[i];
+					var agtDiv = 	 '<div id="agt' + agt.tokenId + '" class="token_box">'
+									+	'<p class = "subject">' + 'ID: ' + agt.tokenId 
+									+	'<button onclick="copyToClipboard(\'agt' + agt.tokenId + '\')">Copy</button>'    
+									+	'<button onclick="buttonDeleteAgt(\'agt'+agt.tokenId + '\')">Delete</button></p>'
+									+		'<h5>Header</h5>'
+									+			'<pre class = "data">' + JSON.stringify(agt.header, null, 4) + '</pre>'
+									+		'<h5>Payload</h5>'
+									+			'<pre class = "data">' + JSON.stringify(agt.payload, null, 4) + '</pre>'
+									+	'<p class = "details">'  
+									+	'Associated Key: ' + agt.keyAssociated + '<br>'
+									+	(agt.payload.exp < Date.now()/1000 ? 
+											'<span class = "red"> Expired </span>' : 
+											'<span class ="green"> Expires: ' + new Date(agt.payload.exp*1000).toLocaleString() + "</span>")
+									+ 	'</p>'
+									+'</div>';
+
+					document.getElementById("agts").insertAdjacentHTML('beforeend', agtDiv);
 				}
 			}
-			logKeyStatus();
-			
-			// Handles the import of the Key when file is selected
-			function clickImport(alg){
-				document.getElementById("import" + alg).click();
-			}
-			document.getElementById("importRSA").onchange = function(){ handleImport(this.files, 'RSA')}
-			document.getElementById("importECDSA").onchange = function(){ handleImport(this.files, 'ECDSA')}
-			function handleImport(fileList, alg){
-				if (fileList && fileList.length > 0){	// If a file was selected
-					const file = fileList.item(0);
-					const reader = new FileReader(); 	// Reader Object to read the file
-					reader.addEventListener("load", () => {	// Handler to launch when finished the file reading 
-						const fileContent = reader.result;
-						importPrivateKey(fileContent, alg);
-					})
-					reader.readAsText(file);	// Reads the file
-				} else {
-					logStatus("Info","Import key: No compatible file was selected for import", "console");
-					window.alert("No key was imported")
+
+			// Print the access tokens stored in indexed db in the html page
+			printATs();
+			async function printATs(){
+				document.getElementById("ats").innerHTML = "";
+				atList = await getAtList();
+				for (var i = 0; i < atList.length; i++) {
+					var at = atList[i];
+					var atDiv = 	 '<div id="at' + at.tokenId + '" class="token_box"">'
+									+	'<p class = "subject"> ID: ' + at.tokenId 
+									+		'<button onclick="copyToClipboard(\'at'+at.tokenId + '\')">Copy</button>'
+									+		'<button onclick="buttonDeleteAt(\'at'+at.tokenId+'\')">Delete</button>'
+									+   '</p>'
+									+		'<h5>Header</h5>'
+									+			'<pre class = "data">' + JSON.stringify(at.header, null, 4) + '</pre>'
+									+		'<h5>Payload</h5>'
+									+			'<pre class = "data">' + JSON.stringify(at.payload, null, 4) + '</pre>'
+									+	'<p class = "details">'  
+									+	(at.payload.exp < Date.now()/1000 ? 
+											'<span class = "red"> Expired </span>' : 
+											'<span class ="green"> Expires: ' + new Date(at.payload.exp*1000).toLocaleString() + "</span>")
+									+ 	'</p>'
+									+'</div>';
+
+					document.getElementById("ats").insertAdjacentHTML('beforeend', atDiv);
 				}
+			}
+
+			// Dynamically delete Access Grant Token with the given id
+			function buttonDeleteAgt(id){
+				console.log(id);
+				deleteAgt(id.replace("agt", ""));
+				document.getElementById(id).remove();
+			}
+			// Dynamically delete Access Token with given id
+			function buttonDeleteAt(id){
+				deleteAt(id.replace("at", ""));
+				document.getElementById(id).remove();
+			}
+			// Copies the token to the clipboard
+			function copyToClipboard(id){
+				let copyTextToClipboard = "";
+				if (id.startsWith("agt")){
+					agt = agtList.find(agt => agt.tokenId == id.replace("agt", ""));
+					if (agt.tokenId == id.replace("agt", "")){
+						copyTextToClipboard = agt.encoded;
+					}
+				} else if (id.startsWith("at")){
+					at = atList.find(at => at.tokenId == id.replace("at", ""));
+					if (at.tokenId == id.replace("at", "")){
+						copyTextToClipboard = at.encoded;
+					}
+				}
+				navigator.clipboard.writeText(copyTextToClipboard);
 			}
 		</script>
 	</body>
