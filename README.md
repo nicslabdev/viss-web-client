@@ -116,3 +116,7 @@ The page allows the client to identify itself using a set of roles.
 The WebApplication will then generate the AGT, AT and VISS Requests to get the data. 
 Info about which data can be accessed is given to the user prior to requesting.
 The idea of this page is to allow a dynamic testing of VISS protocol.
+
+## Management Interface
+
+A basic interface to communicate with the Access Grant Token Server and the Access Token Server to modify the policies followed by each one of them is in phase of development.
