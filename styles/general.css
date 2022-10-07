@@ -391,3 +391,61 @@
 .red_text {
   color : red;
 }
+
+/* Bordered Data Box */
+.token_container{
+  overflow: auto;
+}
+
+.token_box{
+  float: left;
+  margin-left: 15px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #ccc;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+.token_box .subject{
+  color: rgb(0, 87, 145);
+  overflow: auto;
+  font-size: 15px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+  border-color: #ccc;
+  border-bottom-style: solid;
+  border-width: 1px;
+}
+
+.token_box .subject button{
+  float: inline-end;
+  padding-left: 7px;
+  margin: 5px;
+}
+
+.token_box .data{
+  padding-left: 7px;
+  padding-right: 7px;
+  overflow: auto;
+}
+
+.token_box .details{
+  color: rgb(66, 66, 66);
+  font-size: 12px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 10px;
+  border-color: #ccc;
+  border-top-style: solid;
+  border-width: 1px;
+}
+
+.token_box .details .red{
+  color: red;
+}
+
+.token_box .details .green{
+  color: green;
+}
