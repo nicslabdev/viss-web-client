@@ -222,7 +222,7 @@ function initPurposeList(){
             logStatus = ("Debug", "Could not get Purpose List, xhr status: " + xhr.status, "console");
         }
     }
-    xhr.open('GET', '/specs/purposelist.json');
+    xhr.open('GET', 'specs/purposelist.json');
     xhr.send();
 }
 

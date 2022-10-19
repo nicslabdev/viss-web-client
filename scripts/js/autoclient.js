@@ -19,7 +19,7 @@ function treeInit(){
             dataTree = pathListJson(JSON.stringify(temptree["LeafPaths"]));
         }
     }
-    xhr.open('GET', '/specs/vsspathlist.json');
+    xhr.open('GET', 'specs/vsspathlist.json');
     xhr.send();
 }
 
