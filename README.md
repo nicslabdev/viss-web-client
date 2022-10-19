@@ -2,7 +2,7 @@
 
 Web client developed for @nicslabdev by @josesnchz acting as frontend of nicslabdev/automotive-viss2. nicslabdev/automotive-viss2 is a repository that implements authorization, authentification and other security concepts to w3c/automotive-viss2 repository. 
 
-The Web Client is integrated in the vissv2server in <a href = "https://github.com/nicslabdev/automotive-viss2/tree/single-proc-lt"> nicslabdev/automotive-viss2/lt-web-client</a> branch. 
+The Web Client is integrated in the vissv2server in <a href = "https://github.com/nicslabdev/automotive-viss2/tree/lt-web-client"> nicslabdev/automotive-viss2/lt-web-client</a> branch. 
 It is served by the vissv2server, in the same port that it accepts WebSocket requests using the url "/webclient".
 
 The Web Application started using GoLang WASM and JavaScript. 
