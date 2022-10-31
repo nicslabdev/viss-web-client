@@ -1,9 +1,9 @@
 # VISS - WEB CLIENT
 
-Web client developed for @nicslabdev by @josesnchz acting as frontend of nicslabdev/automotive-viss2. nicslabdev/automotive-viss2 is a repository that implements authorization, authentification and other security concepts to w3c/automotive-viss2 repository. 
+Web client developed for @nicslabdev by @josesnchz used to interact with nicslabdev/automotive-viss2. nicslabdev/automotive-viss2 is a repository that implements authorization, authentification and other security concepts to w3c/automotive-viss2 repository. 
 
-The Web Client is integrated in the vissv2server in <a href = "https://github.com/nicslabdev/automotive-viss2/tree/lt-web-client"> nicslabdev/automotive-viss2/lt-web-client</a> branch. 
-It is served by the vissv2server, in the same port that it accepts WebSocket requests using the url "/webclient".
+This repository is included as a submodule in the automotive-viss2 and the WebClient is served by the vissv2server, in the same port that it accepts WebSocket requests.
+To use the WebClient 
 
 The Web Application started using GoLang WASM and JavaScript. 
 At the moment, the WebApplication is fully written in vanilla JavaScript and  HTML, allowing huge compatibility with most browsers.
@@ -62,15 +62,17 @@ New files can be generated following the rules specified in that repository.
 
 ### Launching and Linking Backend
 
-VISS servers, AGT server and AT server must be launched together with the web client.
+The WebClient can either be served by the vissv2 server to be used with it or by a WebServer deployed remotely to use with whichever implementation of VISS protocol. 
 
-The IPs and serving port of those servers must be setted in the main page of the client.
+The web client is pre-configured to be used with the automotive-vissv2 implementation launched locally, since all the ports assigned to each of the components are the one defined in that repository and the URL to use them is localhost.
 
-To launch the servers the repository <a  href="https://github.com/nicslabdev/automotive-viss2">nicslabdev/automotive-viss2</a> must be cloned. 
+In case the WebClient is used with other implementation of the VISS protocol or the URL used to access the Servers is different, it must be setted in the main page of the client the first time it is accessed. This will save the setted URL and port in the Local Storage of the Browser.
+
+In case the default port and URL want to be changed, the main.html file must be edited.
 
 ## Client System Architecture
 
-This project demonstrates the authentication, authorization and data access flow described in VISSv2 protocol.
+This project can be used to test the authentication, authorization and data access flow described in VISSv2 protocol.
 
 AGT, AT and VISSv2 requests are therefore supported.
 
@@ -113,10 +115,17 @@ The data requested is selected after parsing the vsspathlist.json file, as descr
 ### VISSv2 AUTO REQUEST
 
 The page allows the client to identify itself using a set of roles.
-The WebApplication will then generate the AGT, AT and VISS Requests to get the data. 
+The WebApplication will then ask for the AGT and AT in case those are needed.
+Then a VISS Request is issued to get the data. 
 Info about which data can be accessed is given to the user prior to requesting.
-The idea of this page is to allow a dynamic testing of VISS protocol.
+This page allows to easily retrieve data from the server without having to iterate all the pages to get the tokens prior the request.
 
 ## Management Interface
 
 A basic interface to communicate with the Access Grant Token Server and the Access Token Server to modify the policies followed by each one of them is in phase of development.
+
+## More information
+Slides used to show the WebClient can be found in these links:
+<ul>
+<ul><a href="https://docs.google.com/presentation/d/1HYT9tcOO-qEofYhw1VkKQl9geRySBThp4LNmavwBrbY/edit?usp=sharing">Client Presentation with Protocol Flow</a></ul>
+<ul><a href="https://docs.google.com/presentation/d/1-e6GnO8cmG6CqC14xvE8nu-lUaEePqmX/edit?usp=sharing&ouid=111013881770481522028&rtpof=true&sd=true">COVESA AMM OCT-2022 slides </a></ul>
