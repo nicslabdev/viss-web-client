@@ -36,6 +36,10 @@ function initAddress() {
         setAddress();
     } 
 }
+// Used to show the different sections of the page
+function getVissHttpUrl(){
+    return (urlMap.tls ? "https://" : "http://") + urlMap.VissIp + ":" + urlMap.VissHttpPort;
+}
 
 // Useful scripts for HTML elements
 function showId(id){

@@ -9,7 +9,7 @@ var filteredAtList;
 var filteredAgtList;
 var filteredPurposeList;
 
-// Gets the data tree fom vsspathlist.json
+// Gets the data tree fom vsspathlist.json file holded by the client server
 var dataTree; treeInit();
 function treeInit(){    
     let xhr = new XMLHttpRequest();

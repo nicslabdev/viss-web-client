@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+        <title>VISS Web Client - Compliance Tool</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="icon" href="images/favicon.ico">
+        <link rel="stylesheet" href="styles/menu.css" type="text/css">
+		<link rel="stylesheet" href="styles/general.css" type="text/css">
+	</head>
+
+    <body>
+        <script src = "scripts/js/menu.js"></script>
+
+        <h2>Compliance Tool</h2>
+        <div>
+            <p>Use this tool to check if a VISS server is compliant with the VISS specification.</p>
+            <p>Enter the URL of the server you want to check and press the "Check" button.</p>
+            <p>For example: <a href="https://viss.example.com">https://viss.example.com</a></p>
+            <p>For more information about the compliance tool, see the <a href="compliance/usecases.html">Compliance Tool Wiki</a> page.</p>
+        </div>
+        <div>
+            <form>
+                <label for="url">URL:</label>
+                <input type="text" id="vissUrl" value="localhost" placeholder="https://viss.example.com"> <br>
+                <label for="httpPort">HTTP Port: </label>
+                <input type="text" id="httpPort" value="8888" placeholder="default" ><br>
+                <label for = "wsPort">WS Port: </label>
+                <input type="text" id="wsPort" value="8080" placeholder="default">
+                <p><input type="button" value="Check" id="checkButton"></p>
+            </form>
+        </div>
+
+        <div>
+            <ul id="complianceResults">
+
+            </ul>
+        </div>
+
+        <div id="helipuerto">
+            <ul>
+                <li>Checking connection with Server</li>
+                <ul>
+                    <li>Checking HTTP Connection</li>
+                    <li>Checking WS Connection</li>
+                    <li>Estimated RTT: </li>
+                    <li>Refused Connections: </li>
+                </ul>
+                <li>Loading Server Tree</li>
+                <ul>
+                    <li>Using pathlist</li>
+                    <li>Using HTTP metadata requests</li>
+                    <li>Using WS metadata requests</li>
+                    <li>Checking equalities between all</li>
+                </ul>
+                <li>Checking HTTP Server Capabilities</li>
+                <ul>
+                    <li>Checking HTTP Read Requests</li>
+                    <ul>
+                        <li>Checking Authorized Read</li>
+                        <li>Checking Search Read</li>
+                        <li>Checking Signal Discovery Read</li>
+                        <li>Checking Dynamic Metadata Read </li>
+                    </ul>
+                    <li>Checking HTTP Update Requests</li>
+                    <ul>
+                        <li>Checking Update</li><!-- TODO : Changes in variables-->
+                    </ul>
+                </ul>
+                <li>Checking WS Server Capabilities</li>
+                <ul>
+                    <li>Checking WS Read Requests</li>
+                    <ul>
+                        <li>Checking Authorized Read</li>
+                        <li>Checking Search Read</li>
+                        <li>Checking Signal Discovery Read</li>
+                        <li>Checking Dynamic Metadata Read </li>
+                    </ul>
+                    <li>Checking WS Update Requests</li>
+                    <ul>
+                        <li>Checking Update</li><!-- TODO : Changes in variables-->
+                    </ul>
+                    <li>Checking Authorized Subscribe</li>
+                    <ul>
+                        <li>Checking Subscribe</li>
+                        <li>Checking Curve Logging Subscribe</li>
+                        <li>Checking Range Subscribe</li>
+                        <li>Checking Unsubscribe</li>
+                    </ul>
+
+            </ul>
+        </div>
+
+        <script src="scripts/js/jquery-3.6.1.min.js"></script>
+        <script src="scripts/js/tests/connection.js"></script>
+        <script src="scripts/js/tests/http.js"></script>
+
+        <script>
+            var vissUrl = "";
+            var vissHttpPort = "443";
+            var vissWsPort = "6443";
+            var httpReady = false;
+            var wsReady =false;
+            
+            $(document).ready(function(){
+                $("#checkButton").click(checkCompliance);
+            });
+
+            const checkCompliance = () => {
+                $("#complianceResults").empty();
+                let connection = checkConnection();
+                // If HTTP works fine
+                connection.http
+                .then (() =>{ // HTTP works fine
+
+                })
+                .catch(() => { // HTTP does not work
+
+                })
+
+                /// If WS works fine
+                connection.ws
+                .then (() => {
+
+                })
+                .catch (() => {
+
+                })
+            }
+
+            
+            // Sends 10 http packgs and tries to establish a ws connection with VISS server
+            // Shows the results and returns an object with htpp and ws properties, promises that 
+            // if resolved means the connection was succesful and if rejected not
+            const checkConnection = () => {
+                $("#complianceResults").append("<li>Checking connection with Server</li>");
+                $("#complianceResults").append("<ul id='connectionResults'></ul>");
+
+                let connectPromises = {http: undefined, ws: undefined};
+
+                // HTTP connection check
+                connectPromises.http = new Promise((resolve, reject) => {
+                    let httpPings = []; // Array of promises
+                    let httpAvgPing = 0;
+                    for (let i = 0; i < 10; i++) {
+                        httpPings.push(checkHttpConnection($("#vissUrl").val(), $("#httpPort").val()));
+                    }
+                    // Waits all request to finish (fulfil or reject) to calculate the average
+                    Promise.allSettled(httpPings).then((httpPingResults) =>{
+                        let successfulPings = [];
+                        httpPingResults.forEach((httpPingResult) => {
+                            // If the request is correct
+                            if (httpPingResult.status === "fulfilled") {
+                                httpAvgPing += httpPingResult.value;
+                                successfulPings.push(httpPingResult.value);
+                            }
+                        });
+                        if (successfulPings.length){ // At least one request was successful   
+                            httpAvgPing = httpAvgPing / successfulPings.length;
+                            httpReady = true;
+                            $("#connectionResults").append("<li>HTTP Connection: Success</li>");
+                            $("#connectionResults").append("<li>HTTP max RTT: " + successfulPings.reduce((x,y) => Math.max(x,y), -Infinity) 
+                                + " ms, min RTT: " + successfulPings.reduce((x,y) => Math.min(x,y), +Infinity)
+                                + " ms, avg RTT: " + httpAvgPing + " ms</li>");
+                            $("#connectionResults").append("<li>HTTP " + httpPingResults.length + " requests made, "
+                                + successfulPings.length + " responses received, success: " 
+                                + 100*successfulPings.length/httpPingResults.length+ "% </li>");
+                            resolve();
+                        } else {    // All requests rejected
+                            httpReady = false;
+                            reject();
+                            $("#connectionResults").append("<li>HTTP Connection: Failed");
+                        }
+                    });
+                });
+                    
+
+                // WS connection check
+                connectPromises.ws = new Promise((resolve, reject) => {
+                    checkWsConnection($("#vissUrl").val(), $("#wsPort").val(), $("#https").val())
+                    .then ((result) =>{
+                        if (result.protocol == "VISSv2"){
+                            wsReady = true;
+                        } else if (result.protocol == "VISSv1"){
+                            wsReady = false;
+                        } else {
+                            wsReady = false;
+                            console.error("Using other Viss version? You should code the handler here");
+                        }
+                        if (wsReady){
+                            $("#connectionResults").append("<li>WS Connection: Connection successful</li>");
+                            $("#connectionResults").append("<li>WS Connection establishment time: " + result.responseTime + " ms</li>");
+                            resolve();
+                        } else {
+                            reject();
+                            if (result.protocol == "VISSv1"){
+                                $("#connectionResults").append("<li>WS Connection Established with VISSv1 Server. "+
+                                    "VISSv1 not supported in this compliance tool. Consider updating to VISSv2.");
+                            } else {
+                                $("#connectionResults").append("<li>Check console, this should never happen");
+                            }
+                        }    
+                    })
+                    .catch ((err) => {
+                        wsReady = false
+                        $("#connectionResults").append("<li>WS Connection: Could not connect with WS server</li>");
+                    });
+                });
+
+                return connectPromises;
+            }
+
+        </script>
+    </body>
+</html>
