@@ -37,7 +37,7 @@ $ ./startme.sh -run
 $ ./startme.sh -runHTTPS -p 443
 
 # stop the webserver
-$ ./viss-manager -stop
+$ ./startme.sh -stop
 
 ```
 
@@ -123,6 +123,14 @@ This page allows to easily retrieve data from the server without having to itera
 ## Management Interface
 
 A basic interface to communicate with the Access Grant Token Server and the Access Token Server to modify the policies followed by each one of them is in phase of development.
+
+## Considerations
+
+The client is written in Vanilla JS. Despite that, Web Crypto API and Indexed DB API are used in order to generate cryptographic keys and securely store those keys and the tokens obtained. 
+
+The support of both APIs in different browsers can be checked here: [Web Crypto](https://caniuse.com/?search=web%20cryptography) and [Indexed DB](https://caniuse.com/?search=indexed%20db). Depending on the browser implementation, Web Crypto requires a Secure Origin to be executed. Because of this, a SSL connection might be needed in order to use the client. Local use does not require SSL certificates since localhost is considered a Secure Origin by browsers.
+
+If the Web Client is deployed independently from the VISS Server, CORS policies must be correctly configured in the VISS Server in order to allow the Web Client to make requests from a different origin.
 
 ## More information
 Slides used to show the WebClient can be found in these links:
